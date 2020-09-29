@@ -8,13 +8,17 @@
     "@testing-library/user-event": "^7.1.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "3.4.3"
+    "react-scripts": "3.4.3",
+    "tailwindcss": "^1.8.10"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:styles": "tailwindcss build src/css/tailwind.css -o src/css/styles.css",
+    "watch:tailwind": "nodemon --exec \"yarn build:styles\" --watch src -e js,jsx,ts,tsx",
+    "dev": "concurrently --kill-others \"yarn watch:tailwind\" \"yarn start\""
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -30,5 +34,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^3.0.0",
+    "concurrently": "^5.3.0",
+    "nodemon": "^2.0.4",
+    "postcss-cli": "^8.0.0"
   }
 }
