@@ -18,7 +18,7 @@ const useHalma = (boardSize) => {
   const [turn, setTurn] = useState(1);
 
   const initiateBoard = useCallback(() => {
-    const newBoard = generateBoard();
+    const newBoard = generateBoard(boardSize);
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4 - i; j++) {
         newBoard[i][j] = {
@@ -52,7 +52,9 @@ const useHalma = (boardSize) => {
     const newBoard = [...board];
     // 1. Check if (r1,c1) contains a pawn
     // 2. Check turn
-    // 3. Check (r2,c2) validity
+    // 3. Check (r2,c2) validity, then move
+    newBoard[r2][c2] = newBoard[r1][c1];
+    newBoard[r1][c1] = null;
     // 4. Change turn
     changeTurn();
     setBoard(newBoard);
