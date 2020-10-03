@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 
-const generateBoard = (size) => {
+const generateBoard = (size, initialValue) => {
   const board = [];
   for (let i = 0; i < size; i++) {
     const row = [];
     for (let j = 0; j < size; j++) {
-      row.push(null);
+      if (!initialValue) {
+        row.push(null);
+      } else {
+        row.push(initialValue);
+      }
     }
     board.push(row);
   }
@@ -16,6 +20,18 @@ const generateBoard = (size) => {
 const useHalma = (boardSize) => {
   const [board, setBoard] = useState(generateBoard(boardSize));
   const [turn, setTurn] = useState(1);
+  const [moves, setMoves] = useState([]);
+
+  const possibleMoves = [
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 0],
+    [1, 1],
+  ];
 
   const initiateBoard = useCallback(() => {
     const newBoard = generateBoard(boardSize);
@@ -42,10 +58,68 @@ const useHalma = (boardSize) => {
     setTurn(turn === 1 ? 2 : 1);
   };
 
+  const isPositionValid = (r, c) => {
+    return r >= 0 && r < boardSize && c >= 0 && c < boardSize;
+  };
+
   const generateMoveset = (r, c) => {
-    // 1. Check if (r,c) has a pawn
-    // 2. Using DFS, generate valid moveset
-    // 3. Return array
+    try {
+      // 1. Check if (r,c) has a pawn
+      if (!board[r][c]) {
+        throw new Error(`No pawn in position (${r},${c})`);
+      }
+      // 2. Using BFS, generate valid moveset
+      const moveset = [];
+      const queue = [];
+      const visited = generateBoard(boardSize, false);
+
+      for (let i = 0; i < possibleMoves.length; i++) {
+        const curMove = [r + possibleMoves[i][0], c + possibleMoves[i][1]];
+        if (
+          isPositionValid(curMove[0], curMove[1]) &&
+          !visited[curMove[0]][curMove[1]] &&
+          !board[curMove[0]][curMove[1]]
+        ) {
+          moveset.push(curMove);
+          visited[curMove[0]][curMove[1]] = true;
+        }
+      }
+      queue.push([r, c]);
+      visited[r][c] = true;
+      while (queue.length !== 0) {
+        const curPos = queue.pop();
+        for (let i = 0; i < possibleMoves.length; i++) {
+          const curMove = [
+            curPos[0] + possibleMoves[i][0],
+            curPos[1] + possibleMoves[i][1],
+          ];
+          const curJumpMove = [
+            curPos[0] + 2 * possibleMoves[i][0],
+            curPos[1] + 2 * possibleMoves[i][1],
+          ];
+          if (
+            isPositionValid(curMove[0], curMove[1]) &&
+            board[curMove[0]][curMove[1]] &&
+            isPositionValid(curJumpMove[0], curJumpMove[1]) &&
+            !visited[curJumpMove[0]][curJumpMove[1]] &&
+            !board[curJumpMove[0]][curJumpMove[1]]
+          ) {
+            moveset.push(curJumpMove);
+            queue.push(curJumpMove);
+            visited[curJumpMove[0]][curJumpMove[1]] = true;
+          }
+        }
+      }
+      console.log(moveset);
+      setMoves(moveset);
+      // 3. Return array
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
+  const emptyMoves = () => {
+    setMoves([]);
   };
 
   const movePawn = (r1, c1, r2, c2) => {
@@ -74,7 +148,17 @@ const useHalma = (boardSize) => {
     // ??
   };
 
-  return [board, changeTurn, movePawn, minimax, localSearch];
+  return [
+    board,
+    turn,
+    changeTurn,
+    movePawn,
+    generateMoveset,
+    moves,
+    emptyMoves,
+    minimax,
+    localSearch,
+  ];
 };
 
 export default useHalma;
