@@ -14,7 +14,7 @@
   "scripts": {
     "start": "yarn build:styles && react-scripts start",
     "build:windows": "SET NODE_ENV=production&&SET GENERATE_SOURCEMAP=false&& yarn build:styles && react-scripts build",
-    "build": "NODE_ENV=production GENERATE_SOURCEMAP=false yarn build:styles && react-scripts build",
+    "build": "NODE_ENV=production yarn build:styles && GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "build:styles": "tailwindcss build src/css/tailwind.css -o src/css/styles.css",
