@@ -12,6 +12,7 @@ const HalmaBoard = (props) => {
     movePawn,
     generateMoveset,
     moves,
+    isMoveValid,
     emptyMoves,
     minimax,
     localSearch,
@@ -35,7 +36,7 @@ const HalmaBoard = (props) => {
                     if (pawn && pawn.owner === turn) {
                       setSelectedTile(i, j);
                       generateMoveset(i, j);
-                    } else if (selected && !pawn) {
+                    } else if (selected && !pawn && isMoveValid(i, j)) {
                       setTargetTile(i, j, movePawn);
                       emptyMoves();
                     }
