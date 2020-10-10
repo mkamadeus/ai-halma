@@ -21,6 +21,7 @@ const useHalma = (boardSize) => {
   const [board, setBoard] = useState(generateBoard(boardSize));
   const [turn, setTurn] = useState(1);
   const [moves, setMoves] = useState([]);
+  const [goal, setGoal] = useState([]);
 
   const possibleMoves = [
     [-1, -1],
@@ -134,8 +135,32 @@ const useHalma = (boardSize) => {
     setBoard(newBoard);
   };
 
-  const isFinalTile = (r, c) => {
+  const generateGoal = (owner) => {
     // Check if (r,c) is final tile
+
+    if(owner == 1) {
+      var num = 5
+      for(let i = 0; i < boardSize/2; i++) {
+        num -= 1
+        for(let j = 0; j < num; j++) {
+          let pos = [i,j]
+          goal.push(pos)
+        }
+      }
+    }
+    
+    else {
+      var num = 1
+      for(let i = boardSize/2; i < boardSize; i++) {
+        num += 1
+        for(let j = boardSize-1; j > boardSize-num; j--) {
+          let pos = [i,j]
+          goal.push(pos)
+        }
+      }
+    }
+    console.log(goal)
+    setGoal(goal)
   };
 
   const minimax = (heuristicFunction) => {
