@@ -76,6 +76,7 @@ const useHalma = (boardSize) => {
 
       for (let i = 0; i < possibleMoves.length; i++) {
         const curMove = [r + possibleMoves[i][0], c + possibleMoves[i][1]];
+
         if (
           isPositionValid(curMove[0], curMove[1]) &&
           !visited[curMove[0]][curMove[1]] &&
@@ -121,6 +122,15 @@ const useHalma = (boardSize) => {
 
   const emptyMoves = () => {
     setMoves([]);
+  };
+
+  const isMoveValid = (r, c) => {
+    for (let i = 0; i < moves.length; i++) {
+      if (moves[i][0] === r && moves[i][1] === c) {
+        return true;
+      }
+    }
+    return false;
   };
 
   const movePawn = (r1, c1, r2, c2) => {
@@ -180,6 +190,7 @@ const useHalma = (boardSize) => {
     movePawn,
     generateMoveset,
     moves,
+    isMoveValid,
     emptyMoves,
     minimax,
     localSearch,
