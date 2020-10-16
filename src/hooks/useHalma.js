@@ -76,7 +76,6 @@ const useHalma = (boardSize) => {
 
       for (let i = 0; i < possibleMoves.length; i++) {
         const curMove = [r + possibleMoves[i][0], c + possibleMoves[i][1]];
-
         if (
           isPositionValid(curMove[0], curMove[1]) &&
           !visited[curMove[0]][curMove[1]] &&
@@ -147,6 +146,7 @@ const useHalma = (boardSize) => {
 
   const generateGoal = (owner) => {
     // Check if (r,c) is final tile
+    let g = []
 
     if(owner == 1) {
       var num = 5
@@ -154,7 +154,7 @@ const useHalma = (boardSize) => {
         num -= 1
         for(let j = 0; j < num; j++) {
           let pos = [i,j]
-          goal.push(pos)
+          g.push(pos)
         }
       }
     }
@@ -165,12 +165,12 @@ const useHalma = (boardSize) => {
         num += 1
         for(let j = boardSize-1; j > boardSize-num; j--) {
           let pos = [i,j]
-          goal.push(pos)
+          g.push(pos)
         }
       }
     }
-    console.log(goal)
-    setGoal(goal)
+    console.log(g)
+    setGoal(g)
   };
 
   const minimax = (heuristicFunction) => {
@@ -183,18 +183,19 @@ const useHalma = (boardSize) => {
     // ??
   };
 
-  return [
+  return {
     board,
     turn,
     changeTurn,
     movePawn,
     generateMoveset,
     moves,
-    isMoveValid,
     emptyMoves,
     minimax,
     localSearch,
-  ];
+    generateGoal,
+    isMoveValid,
+  };
 };
 
 export default useHalma;

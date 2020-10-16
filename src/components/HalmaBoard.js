@@ -5,18 +5,19 @@ import Pawn from "./Pawn";
 
 const HalmaBoard = (props) => {
   const { size } = props;
-  const [
+  const {
     board,
     turn,
     changeTurn,
     movePawn,
     generateMoveset,
     moves,
-    isMoveValid,
     emptyMoves,
     minimax,
     localSearch,
-  ] = useHalma(size);
+    generateGoal,
+    isMoveValid,
+  } = useHalma(size);
   const [selected, setSelectedTile, setTargetTile] = useSelection();
   return (
     <div className="flex flex-col p-1">
