@@ -12,7 +12,13 @@ export default class State {
   copyState() {
     const copiedState = new State(this.board.getBoardSize());
     for (let i = 0; i < this.pawnList1.length; i++) {
-      copiedState.pawnList1.push([this.pawnList1[i][0], this.pawnList1[i][1]]);
+      const pawn1 = this.pawnList1[i];
+      copiedState.pawnList1.push(pawn1.copyPawn());
+      copiedState.board.setBoard(pawn1.row, pawn1.col, 1);
+
+      const pawn2 = this.pawnList2[i];
+      copiedState.pawnList2.push(pawn2.copyPawn());
+      copiedState.board.setBoard(pawn2.row, pawn2.col, 2);
     }
     return copiedState;
   }
@@ -97,9 +103,9 @@ export default class State {
       for (let i = 0; i < possibleMoves.length; i++) {
         const curMove = [r + possibleMoves[i][0], c + possibleMoves[i][1]];
         if (
-          this.board.this.board.isPositionValid(curMove[0], curMove[1]) &&
+          this.board.isPositionValid(curMove[0], curMove[1]) &&
           !visited[curMove[0]][curMove[1]] &&
-          !this.board[curMove[0]][curMove[1]]
+          !this.board.getBoard(curMove[0], curMove[1])
         ) {
           moveset.push(curMove);
           visited[curMove[0]][curMove[1]] = true;
@@ -122,10 +128,10 @@ export default class State {
           ];
           if (
             this.board.isPositionValid(curMove[0], curMove[1]) &&
-            this.board[curMove[0]][curMove[1]] &&
+            this.board.getBoard(curMove[0], curMove[1]) &&
             this.board.isPositionValid(curJumpMove[0], curJumpMove[1]) &&
             !visited[curJumpMove[0]][curJumpMove[1]] &&
-            !this.board[curJumpMove[0]][curJumpMove[1]]
+            !this.board.getBoard(curJumpMove[0], curJumpMove[1])
           ) {
             moveset.push(curJumpMove);
             queue.push(curJumpMove);
@@ -177,6 +183,7 @@ export default class State {
       throw new Error("Invalid move");
     }
     const pawn = this.getPawnInPosition(r1, c1);
+    // console.log("ss");
     pawn.row = r2;
     pawn.col = c2;
     this.board.setBoard(r2, c2, pawn.owner);

@@ -6,10 +6,22 @@ import Pawn from "./Pawn";
 const HalmaBoard = (props) => {
   const { size } = props;
   const [selected, setSelectedTile, setTargetTile] = useSelection();
-  const { state, getPawnInPosition } = useHalma(size);
+  const { state, getPawnInPosition, turn, changeTurn, movePawn } = useHalma(
+    size
+  );
   console.log("hehe", state);
 
-  const getPawn = () => {};
+  const getPawn = (r, c) => {
+    const pawn = getPawnInPosition(r, c);
+    if (pawn) {
+      return (
+        <Pawn
+          color={pawn.color}
+          isSelected={selected && r === selected[0] && c === selected[1]}
+        />
+      );
+    }
+  };
 
   return (
     <div className="flex flex-col p-1">
@@ -26,25 +38,18 @@ const HalmaBoard = (props) => {
                       : "bg-gray-200"
                   } rounded m-1 hover:shadow-md transition duration-150`}
                   onClick={(event) => {
-                    // if (pawn && pawn.owner === turn) {
-                    //   setSelectedTile(i, j);
-                    //   generateMoveset(i, j);
-                    // } else if (selected && !pawn && isMoveValid(i, j)) {
-                    //   setTargetTile(i, j, movePawn);
-                    //   emptyMoves();
-                    // }
+                    const pawn = getPawnInPosition(i, j);
+                    if (pawn && pawn.owner === turn) {
+                      setSelectedTile(i, j);
+                      // generateMoveset(i, j);
+                    } else if (selected && !pawn) {
+                      setTargetTile(i, j, movePawn);
+                      // movePawn(selected[0], selected[1], i, j);
+                      // emptyMoves();
+                    }
                   }}
                 >
-                  {state.board.board[i][j] !== 0 ? (
-                    <Pawn
-                      color={"#FFF"}
-                      isSelected={
-                        selected && i === selected[0] && j === selected[1]
-                      }
-                    />
-                  ) : (
-                    ""
-                  )}
+                  {getPawn(i, j)}
                   {/* {moves.filter((value) => value[0] === i && value[1] === j)
                     .length !== 0 ? (
                     <div

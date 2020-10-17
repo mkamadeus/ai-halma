@@ -6,6 +6,10 @@ export default class Pawn {
     this.col = col;
   }
 
+  copyPawn() {
+    return new Pawn(this.color, this.owner, this.row, this.col);
+  }
+
   getColor() {
     return this.color;
   }
