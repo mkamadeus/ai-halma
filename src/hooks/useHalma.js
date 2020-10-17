@@ -20,15 +20,11 @@ const useHalma = (boardSize) => {
   };
 
   const movePawn = (r1, c1, r2, c2) => {
-    try {
-      console.log("useHalma", state);
-      const newState = state.copyState();
-      console.log("useHalma newState", newState);
-      newState.movePawn(r1, c1, r2, c2);
-      setState(newState);
-    } catch (err) {
-      console.log(err.message);
-    }
+    console.log("useHalma", state);
+    const newState = state.copyState();
+    console.log("useHalma newState", newState);
+    newState.movePawn(r1, c1, r2, c2);
+    setState(newState);
   };
 
   return { state, movePawn, turn, changeTurn, getPawnInPosition };

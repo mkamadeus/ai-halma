@@ -39,13 +39,18 @@ const HalmaBoard = (props) => {
                   } rounded m-1 hover:shadow-md transition duration-150`}
                   onClick={(event) => {
                     const pawn = getPawnInPosition(i, j);
-                    if (pawn && pawn.owner === turn) {
-                      setSelectedTile(i, j);
-                      // generateMoveset(i, j);
-                    } else if (selected && !pawn) {
-                      setTargetTile(i, j, movePawn);
-                      // movePawn(selected[0], selected[1], i, j);
-                      // emptyMoves();
+                    try {
+                      if (pawn && pawn.owner === turn) {
+                        setSelectedTile(i, j);
+                        // generateMoveset(i, j);
+                      } else if (selected && !pawn) {
+                        setTargetTile(i, j, movePawn);
+                        changeTurn();
+                        // movePawn(selected[0], selected[1], i, j);
+                        // emptyMoves();
+                      }
+                    } catch (err) {
+                      console.log(err.message);
                     }
                   }}
                 >
