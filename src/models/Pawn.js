@@ -1,22 +1,24 @@
 export default class Pawn {
-  constructor(owner, row, col) {
+  constructor(color, owner, row, col) {
+    this.color = color;
     this.owner = owner;
     this.row = row;
     this.col = col;
   }
 
-  printPawnInfo = () => {
-    console.log(this.owner);
-    console.log(this.location);
-  };
+  getColor() {
+    return this.color;
+  }
 
-  /**
-   * Move pawn to (r,c)
-   * @param {number} r Target row
-   * @param {number} c Target col
-   */
-  move = (r, c) => {
-    this.row = r;
-    this.col = c;
-  };
+  getOwner() {
+    return this.owner;
+  }
+
+  getRow() {
+    return this.row;
+  }
+
+  getCol() {
+    return this.col;
+  }
 }

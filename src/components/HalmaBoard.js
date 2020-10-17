@@ -5,23 +5,15 @@ import Pawn from "./Pawn";
 
 const HalmaBoard = (props) => {
   const { size } = props;
-  const {
-    board,
-    turn,
-    changeTurn,
-    movePawn,
-    generateMoveset,
-    moves,
-    emptyMoves,
-    minimax,
-    localSearch,
-    generateGoal,
-    isMoveValid,
-  } = useHalma(size);
   const [selected, setSelectedTile, setTargetTile] = useSelection();
+  const { state, getPawnInPosition } = useHalma(size);
+  console.log("hehe", state);
+
+  const getPawn = () => {};
+
   return (
     <div className="flex flex-col p-1">
-      {board.map((row, i) => {
+      {state.board.board.map((row, i) => {
         return (
           <div className="flex" key={`halma-row-${i}`}>
             {row.map((pawn, j) => {
@@ -34,18 +26,18 @@ const HalmaBoard = (props) => {
                       : "bg-gray-200"
                   } rounded m-1 hover:shadow-md transition duration-150`}
                   onClick={(event) => {
-                    if (pawn && pawn.owner === turn) {
-                      setSelectedTile(i, j);
-                      generateMoveset(i, j);
-                    } else if (selected && !pawn && isMoveValid(i, j)) {
-                      setTargetTile(i, j, movePawn);
-                      emptyMoves();
-                    }
+                    // if (pawn && pawn.owner === turn) {
+                    //   setSelectedTile(i, j);
+                    //   generateMoveset(i, j);
+                    // } else if (selected && !pawn && isMoveValid(i, j)) {
+                    //   setTargetTile(i, j, movePawn);
+                    //   emptyMoves();
+                    // }
                   }}
                 >
-                  {pawn ? (
+                  {state.board.board[i][j] !== 0 ? (
                     <Pawn
-                      color={pawn.color}
+                      color={"#FFF"}
                       isSelected={
                         selected && i === selected[0] && j === selected[1]
                       }
@@ -53,7 +45,7 @@ const HalmaBoard = (props) => {
                   ) : (
                     ""
                   )}
-                  {moves.filter((value) => value[0] === i && value[1] === j)
+                  {/* {moves.filter((value) => value[0] === i && value[1] === j)
                     .length !== 0 ? (
                     <div
                       className="w-4 h-4 bg-red-400 rounded-full absolute animate-ping"
@@ -61,7 +53,7 @@ const HalmaBoard = (props) => {
                     />
                   ) : (
                     ""
-                  )}
+                  )} */}
                 </div>
               );
             })}
