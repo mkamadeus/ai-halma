@@ -57,11 +57,11 @@ const useHalma = (boardSize) => {
           console.log("ADA YANG DI GOAL");
         }
         for(let j=0;j<goal.length;j++){
-          computerDist.push(euclideanDistance(pawn.row,pawn.col,goal[i][0],goal[i][1]));
+          computerDist.push(euclideanDistance(pawn.row,pawn.col,goal[j][0],goal[j][1]));
         }
         if(computerDist.length){
           computerDistance += computerDist.reduce(function(a,b){
-            return Math.max(a,b);
+            return Math.min(a,b);
           });
         }
         else{
@@ -151,6 +151,9 @@ const useHalma = (boardSize) => {
       }
     }
     
+    // result = [value, bestMove];
+    // return result;
+    console.log("Result Akhir ",value);
     result = [value, bestMove];
     return result;
   };
