@@ -37,10 +37,10 @@ export default class Board {
     for(let i = 0; i < boardSize; i++) {
       for(let j = 0; j < boardSize - i; j++) {
         let pos = [];
-        if(owner == 1){
+        if(owner == 2){
           pos = [i,j];
         }
-        else if(owner == 2){
+        else if(owner == 1){
           pos = [boardSize - i - 1, boardSize - j - 1];
         }
         goal.push(pos);

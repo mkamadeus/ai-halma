@@ -38,8 +38,45 @@ const useHalma = (boardSize) => {
     setState(newState);
   };
 
-  const heuristicFunction = (curS, turn) => {
-    return Math.random();
+  const euclideanDistance = (r1,c1,r2,c2) => {
+    return Math.sqrt(Math.pow((r2-r1),2)+Math.pow((c2-c1),2));
+  }
+
+  const heuristicFunction = (curS, owner) => {
+    let computerDistance = 0.0;
+    let goal = [];
+    let index = -1;
+    goal  = curS.board.generateGoal(owner).slice();
+    let pawn = null;
+    if(owner==2){
+      for(let i=0;i<curS.pawnList2.length;i++){
+        let computerDist = [];
+        pawn = curS.pawnList2[i];
+        index = goal.indexOf([pawn.row,pawn.col]);
+        if(index > -1){
+          console.log("ADA YANG DI GOAL");
+        }
+        for(let j=0;j<goal.length;j++){
+          computerDist.push(euclideanDistance(pawn.row,pawn.col,goal[i][0],goal[i][1]));
+        }
+        if(computerDist.length){
+          computerDistance += computerDist.reduce(function(a,b){
+            return Math.max(a,b);
+          });
+        }
+        else{
+          computerDistance += 50;
+        }
+      }
+      console.log("Heuristic function ",computerDistance);
+    }
+    else{
+      for(let i=0;i<curS.pawnList1.length;i++){
+        pawn = curS.pawnList1[i];
+        
+      }
+    }
+    return (-1)*computerDistance;
   };
 
   const generateAllMoveSet = (curS, ply) => {
@@ -69,13 +106,10 @@ const useHalma = (boardSize) => {
   }
 
   const minimax = (curD, curS, isMax, alpha, beta) => {
-    console.log("curS", curD, curS);
-    console.log("state", curD, state);
-    console.log("iterasi", curD);
     let result = [];
 
-    if(curD == 4 || curS.isFinalState()) {
-      let res = [heuristicFunction(curS, turn), curS];
+    if(curD == 3 || curS.isFinalState()) {
+      let res = [heuristicFunction(curS, 2), curS];
       return res;
     }
 
@@ -94,7 +128,7 @@ const useHalma = (boardSize) => {
     
     for(let i = 0; i < moveCurPawn.length; i++) {
       let resMinimax = minimax(curD+1, moveCurPawn[i], !isMax, alpha, beta);
-
+      console.log("RESULT MINIMAX: ",resMinimax[0]);
       if(isMax && value < resMinimax[0]) {
         value = resMinimax[0];
         bestMove = moveCurPawn[i];
