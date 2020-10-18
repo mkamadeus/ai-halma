@@ -56,7 +56,7 @@ export default class State {
     let isFinal2 = true;
     for (let i = 0; i < boardSize; i++) {
       for (let j = 0; j < boardSize; j++) {
-        if (this.board[i][j] !== 2) {
+        if (this.board.getBoard(i,j) !== 2) {
           isFinal2 = false;
           break;
         }
@@ -67,7 +67,7 @@ export default class State {
     let isFinal1 = true;
     for (let i = 0; i < boardSize; i++) {
       for (let j = 0; j < boardSize; j++) {
-        if (this.board[boardSize - i - 1][boardSize - j - 1] !== 1) {
+        if (this.board.getBoard(boardSize - i - 1, boardSize - j - 1) !== 1) {
           isFinal1 = false;
           break;
         }

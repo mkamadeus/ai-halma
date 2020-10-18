@@ -30,4 +30,22 @@ export default class Board {
   getBoardSize() {
     return this.boardSize;
   }
+
+  generateGoal(owner) {
+    const boardSize = this.getBoardSize()/2;
+    const goal = []
+    for(let i = 0; i < boardSize; i++) {
+      for(let j = 0; j < boardSize - i; j++) {
+        let pos = [];
+        if(owner == 1){
+          pos = [i,j];
+        }
+        else if(owner == 2){
+          pos = [boardSize - i - 1, boardSize - j - 1];
+        }
+        goal.push(pos);
+      }
+    }
+    return goal;
+  }
 }
