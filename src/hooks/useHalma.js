@@ -18,7 +18,7 @@ const useHalma = (boardSize, depth) => {
 
     if (turn === 2) {
       setState(
-        minimaxLocal(
+        minimax(
           1,
           newState,
           true,
@@ -50,41 +50,96 @@ const useHalma = (boardSize, depth) => {
     return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(c2 - c1, 2));
   };
 
-  const heuristicFunction = (curS, owner) => {
-    let computerDistance = 0.0;
-    let goal = [];
-    let index = -1;
-    goal = curS.board.generateGoal(owner).slice();
-    let pawn = null;
-    if (owner === 2) {
-      for (let i = 0; i < curS.pawnList2.length; i++) {
-        let computerDist = [];
-        pawn = curS.pawnList2[i];
-        index = goal.indexOf([pawn.row, pawn.col]);
-        if (index > -1) {
-          console.log("ADA YANG DI GOAL");
-        }
-        for (let j = 0; j < goal.length; j++) {
-          computerDist.push(
-            euclideanDistance(pawn.row, pawn.col, goal[i][0], goal[i][1])
-          );
-        }
-        if (computerDist.length) {
-          computerDistance += computerDist.reduce(function (a, b) {
-            return Math.min(a, b);
-          });
-        } else {
-          computerDistance += 50;
-        }
-      }
-      console.log("Heuristic function ", computerDistance);
-    } else {
-      for (let i = 0; i < curS.pawnList1.length; i++) {
-        pawn = curS.pawnList1[i];
-      }
-    }
-    return -1 * computerDistance;
-  };
+  // const heuristicFunction = (curS,owner) => {
+  //   let value = 0.0;
+  //   let pawn = null;
+  //   let goal = [];
+  //   let goalOp = [];
+  //   goal = curS.board.generateGoal(owner).slice();
+  //   goalOp = curS.board.generateGoal((3-owner)).slice();
+  //   if(owner===2){
+  //     for(let i = 0; i < curS.pawnList2.length; i++){
+  //       let myDist = [];
+  //       pawn = curS.pawnList2[i];
+  //       for(let j = 0; j < goal.length; j++){
+  //         //goal[j][0]->row
+  //         //goal[j][1]->col
+  //         if(curS.getPawnInPosition(goal[j][0],goal[j][1]))
+  //         {
+  //           if(curS.getPawnInPosition(goal[j][0],goal[j][1]).getOwner()!=owner){
+  //             myDist.push(euclideanDistance(pawn.row,pawn.col,goal[j][0],goal[j][1]));
+  //           }
+  //         } 
+  //       }
+  //       if(myDist.length){
+  //         value -= myDist.reduce(function (a, b) {return Math.max(a, b);});
+  //       }
+  //       else{
+  //         value -= 50;
+  //       } 
+  //     }
+  //     for(let i = 0; i < curS.pawnList1.length; i++){
+  //       let opDist = [];
+  //       pawn = curS.pawnList1[i];
+  //       for(let j = 0; j < goalOp.length; j++){
+  //         //goal[j][0]->row
+  //         //goal[j][1]->col
+  //         if(curS.getPawnInPosition(goalOp[j][0],goalOp[j][1]))
+  //         {
+  //           if(curS.getPawnInPosition(goalOp[j][0],goalOp[j][1]).getOwner()!=owner){
+  //             opDist.push(euclideanDistance(pawn.row,pawn.col,goalOp[j][0],goalOp[j][1]));
+  //           }
+  //         } 
+  //       }
+  //       if(opDist.length){
+  //         value += opDist.reduce(function (a, b) {return Math.max(a, b);});
+  //       }
+  //       else{
+  //         value -= 50;
+  //       } 
+  //     }
+  //     return value;
+  //   }
+  //   else{
+  //     return -value;
+  //   }
+  // }
+
+  // const heuristicFunction = (curS, owner) => {
+  //   let computerDistance = 0.0;
+  //   let goal = [];
+  //   let index = -1;
+  //   goal = curS.board.generateGoal(owner).slice();
+  //   let pawn = null;
+  //   if (owner === 2) {
+  //     for (let i = 0; i < curS.pawnList2.length; i++) {
+  //       let computerDist = [];
+  //       pawn = curS.pawnList2[i];
+  //       index = goal.indexOf([pawn.row, pawn.col]);
+  //       if (index > -1) {
+  //         console.log("ADA YANG DI GOAL");
+  //       }
+  //       for (let j = 0; j < goal.length; j++) {
+  //         computerDist.push(
+  //           euclideanDistance(pawn.row, pawn.col, goal[i][0], goal[i][1])
+  //         );
+  //       }
+  //       if (computerDist.length) {
+  //         computerDistance += computerDist.reduce(function (a, b) {
+  //           return Math.min(a, b);
+  //         });
+  //       } else {
+  //         computerDistance += 50;
+  //       }
+  //     }
+  //     console.log("Heuristic function ", computerDistance);
+  //   } else {
+  //     for (let i = 0; i < curS.pawnList1.length; i++) {
+  //       pawn = curS.pawnList1[i];
+  //     }
+  //   }
+  //   return -1 * computerDistance;
+  // };
 
   const generateAllMoveSet = (curS, ply) => {
     const m = [];
