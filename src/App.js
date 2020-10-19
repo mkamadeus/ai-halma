@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="container mx-auto">
       <div className="flex justify-center items-center w-full h-screen ">
-        <HalmaBoard size={16} />
+        <HalmaBoard size={8} />
       </div>
     </div>
   );

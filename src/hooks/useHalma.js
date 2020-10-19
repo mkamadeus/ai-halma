@@ -50,6 +50,61 @@ const useHalma = (boardSize, depth) => {
     return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(c2 - c1, 2));
   };
 
+  // const heuristicFunction = (curS,owner) => {
+  //   let value = 0.0;
+  //   let pawn = null;
+  //   let goal = [];
+  //   let goalOp = [];
+  //   goal = curS.board.generateGoal(owner).slice();
+  //   goalOp = curS.board.generateGoal((3-owner)).slice();
+  //   if(owner===2){
+  //     for(let i = 0; i < curS.pawnList2.length; i++){
+  //       let myDist = [];
+  //       pawn = curS.pawnList2[i];
+  //       for(let j = 0; j < goal.length; j++){
+  //         //goal[j][0]->row
+  //         //goal[j][1]->col
+  //         if(curS.getPawnInPosition(goal[j][0],goal[j][1]))
+  //         {
+  //           if(curS.getPawnInPosition(goal[j][0],goal[j][1]).getOwner()!=owner){
+  //             myDist.push(euclideanDistance(pawn.row,pawn.col,goal[j][0],goal[j][1]));
+  //           }
+  //         } 
+  //       }
+  //       if(myDist.length){
+  //         value += myDist.reduce(function (a, b) {return Math.max(a, b);});
+  //       }
+  //       else{
+  //         value -= 50;
+  //       } 
+  //     }
+  //     for(let i = 0; i < curS.pawnList1.length; i++){
+  //       let opDist = [];
+  //       pawn = curS.pawnList1[i];
+  //       for(let j = 0; j < goalOp.length; j++){
+  //         //goal[j][0]->row
+  //         //goal[j][1]->col
+  //         if(curS.getPawnInPosition(goalOp[j][0],goalOp[j][1]))
+  //         {
+  //           if(curS.getPawnInPosition(goalOp[j][0],goalOp[j][1]).getOwner()!=owner){
+  //             opDist.push(euclideanDistance(pawn.row,pawn.col,goalOp[j][0],goalOp[j][1]));
+  //           }
+  //         } 
+  //       }
+  //       if(opDist.length){
+  //         value -= opDist.reduce(function (a, b) {return Math.max(a, b);});
+  //       }
+  //       else{
+  //         value -= 50;
+  //       } 
+  //     }
+  //     return -value;
+  //   }
+  //   else{
+  //     return value;
+  //   }
+  // }
+
   const heuristicFunction = (curS, owner) => {
     let computerDistance = 0.0;
     let goal = [];
@@ -182,13 +237,15 @@ const useHalma = (boardSize, depth) => {
     let s = null;
 
     // Scheduling functions
-    let temperatureSchedule = (iteration) => 100 - iteration;
+    let temperatureSchedule = (iteration, T) => T - iteration +(0.5*iteration);
     let randomWalkProbability = (delta, iteration) =>
       Math.exp(delta / temperatureSchedule(iteration));
 
     // Iterate for SA
-    let iteration = 0;
-    while (temperatureSchedule(iteration) > 0) {
+    let iteration = 1;
+    let T = 100;
+    while (temperatureSchedule(iteration, T) > 0) {
+      let temp = temperatureSchedule(iteration, T);
       // Select a random state
       let randomState =
         moveCurPawn[Math.floor(Math.random() * moveCurPawn.length)];
@@ -209,6 +266,7 @@ const useHalma = (boardSize, depth) => {
         }
       }
       iteration++;
+      T = temp;
     }
     return [max, s];
   };
@@ -230,7 +288,7 @@ const useHalma = (boardSize, depth) => {
 
     // Generate 5 random move
     let moveCurPawn = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
       moveCurPawn.push(simulatedAnnealing(curS, isMax ? 2 : 1)[1]);
     }
 
