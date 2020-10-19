@@ -53,7 +53,6 @@ const useHalma = (boardSize, depth) => {
   const heuristicFunction = (curS, owner) => {
     let computerDistance = 0.0;
     let goal = [];
-    let index = -1;
     goal = curS.board.generateGoal(owner).slice();
     let pawn = null;
     for (let i = 0; i < curS.pawnList2.length; i++) {
