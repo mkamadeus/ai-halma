@@ -7,6 +7,8 @@ export default class State {
     this.board = new Board(boardSize);
     this.pawnList1 = [];
     this.pawnList2 = [];
+    this.prevPosition = null;
+    this.currentMove = null;
   }
 
   copyState() {
@@ -30,7 +32,7 @@ export default class State {
       for (let j = 0; j < n - i; j++) {
         // Initiate player 1
         this.board.setBoard(i, j, 1);
-        this.pawnList1.push(new Pawn("#000", 1, i, j));
+        this.pawnList1.push(new Pawn("#00a2ff", 1, i, j));
 
         // Initiate player 2
         this.board.setBoard(
@@ -40,7 +42,7 @@ export default class State {
         );
         this.pawnList2.push(
           new Pawn(
-            "#FFF",
+            "#ff9a00",
             2,
             this.board.getBoardSize() - i - 1,
             this.board.getBoardSize() - j - 1
@@ -48,7 +50,6 @@ export default class State {
         );
       }
     }
-    console.log("State =", this);
   }
 
   isFinalState() {
@@ -56,7 +57,7 @@ export default class State {
     let isFinal2 = true;
     for (let i = 0; i < boardSize; i++) {
       for (let j = 0; j < boardSize; j++) {
-        if (this.board.getBoard(i,j) !== 2) {
+        if (this.board.getBoard(i, j) !== 2) {
           isFinal2 = false;
           break;
         }
@@ -188,5 +189,7 @@ export default class State {
     pawn.col = c2;
     this.board.setBoard(r2, c2, pawn.owner);
     this.board.setBoard(r1, c1, 0);
+    this.prevPosition = [r1, c1];
+    this.currentMove = [r2, c2];
   }
 }
