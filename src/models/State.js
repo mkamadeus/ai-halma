@@ -32,7 +32,7 @@ export default class State {
       for (let j = 0; j < n - i; j++) {
         // Initiate player 1
         this.board.setBoard(i, j, 1);
-        this.pawnList1.push(new Pawn("#000", 1, i, j));
+        this.pawnList1.push(new Pawn("#00a2ff", 1, i, j));
 
         // Initiate player 2
         this.board.setBoard(
@@ -42,7 +42,7 @@ export default class State {
         );
         this.pawnList2.push(
           new Pawn(
-            "#FFF",
+            "#ff9a00",
             2,
             this.board.getBoardSize() - i - 1,
             this.board.getBoardSize() - j - 1
