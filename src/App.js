@@ -9,7 +9,7 @@ function App() {
         className="flex justify-center items-center w-full h-screen"
         style={{ maxWidth: "800px" }}
       >
-        <HalmaBoard size={10} />
+        <HalmaBoard size={8} />
       </div>
     </div>
   );

@@ -56,34 +56,28 @@ const useHalma = (boardSize, depth) => {
     let index = -1;
     goal = curS.board.generateGoal(owner).slice();
     let pawn = null;
-    if (owner === 2) {
-      for (let i = 0; i < curS.pawnList2.length; i++) {
-        let computerDist = [];
-        pawn = curS.pawnList2[i];
-        index = goal.indexOf([pawn.row, pawn.col]);
-        if (index > -1) {
-          console.log("ADA YANG DI GOAL");
-        }
-        for (let j = 0; j < goal.length; j++) {
-          computerDist.push(
-            euclideanDistance(pawn.row, pawn.col, goal[i][0], goal[i][1])
-          );
-        }
-        if (computerDist.length) {
-          computerDistance += computerDist.reduce(function (a, b) {
-            return Math.min(a, b);
-          });
-        } else {
-          computerDistance += 50;
+    for (let i = 0; i < curS.pawnList2.length; i++) {
+      let count = true;
+      pawn = curS.pawnList2[i];
+      for(let j = 0; j < goal.length; j++){
+        if((pawn.row == goal[j][0].row) && (pawn.col == goal[j][1])){
+          count = false;
         }
       }
-      console.log("Heuristic function ", computerDistance);
-    } else {
-      for (let i = 0; i < curS.pawnList1.length; i++) {
-        pawn = curS.pawnList1[i];
-      }
+      let computerDist = [];
+      if(count){
+        for(let j = 0; j < goal.length; j++){
+          computerDist.push(euclideanDistance(pawn.row, pawn.col, goal[j][0], goal[j][1]));
+        }
+        computerDistance += computerDist.reduce(function (a, b) {return Math.min(a, b);});  
+      } 
     }
-    return -1 * computerDistance;
+    if(owner===1){
+      return computerDistance;
+    }
+    else{
+      return -1 * computerDistance;
+    }
   };
 
   const generateAllMoveSet = (curS, ply) => {
@@ -150,7 +144,6 @@ const useHalma = (boardSize, depth) => {
 
     for (let i = 0; i < moveCurPawn.length; i++) {
       let resMinimax = minimax(curD + 1, moveCurPawn[i], !isMax, alpha, beta);
-      console.log("RESULT MINIMAX: ", resMinimax[0]);
       if (isMax && value < resMinimax[0]) {
         value = resMinimax[0];
         bestMove = moveCurPawn[i];
