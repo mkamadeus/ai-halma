@@ -7,9 +7,9 @@ const HalmaBoard = (props) => {
   const { size } = props;
   const [selected, setSelectedTile, setTargetTile] = useSelection();
   const { state, getPawnInPosition, turn, changeTurn, movePawn } = useHalma(
-    size
+    size,
+    3
   );
-  console.log("hehe", state);
 
   const getPawn = (r, c) => {
     const pawn = getPawnInPosition(r, c);
