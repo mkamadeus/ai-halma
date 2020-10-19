@@ -23,7 +23,8 @@ const useHalma = (boardSize, depth) => {
           newState,
           true,
           Number.NEGATIVE_INFINITY,
-          Number.POSITIVE_INFINITY
+          Number.POSITIVE_INFINITY,
+          turn
         )[1]
       );
 
@@ -121,11 +122,11 @@ const useHalma = (boardSize, depth) => {
     return arrOfS;
   };
 
-  const minimax = (curD, curS, isMax, alpha, beta) => {
+  const minimax = (curD, curS, isMax, alpha, beta, turn) => {
     let result = [];
 
     if (curD === 3 || curS.isFinalState()) {
-      let res = [heuristicFunction(curS, 2), curS];
+      let res = [heuristicFunction(curS, turn), curS];
       return res;
     }
 
@@ -142,7 +143,7 @@ const useHalma = (boardSize, depth) => {
     let bestMove = new State(boardSize);
 
     for (let i = 0; i < moveCurPawn.length; i++) {
-      let resMinimax = minimax(curD + 1, moveCurPawn[i], !isMax, alpha, beta);
+      let resMinimax = minimax(curD + 1, moveCurPawn[i], !isMax, alpha, beta, turn);
       if (isMax && value < resMinimax[0]) {
         value = resMinimax[0];
         bestMove = moveCurPawn[i];
