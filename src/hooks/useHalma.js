@@ -17,7 +17,7 @@ const useHalma = (boardSize) => {
     let a = Number.NEGATIVE_INFINITY;
     let b = Number.POSITIVE_INFINITY;
     if(turn == 2) { 
-      setState(minimax(1, newState, true, a, b)[1]);
+      setState(minimaxLocal(1, newState, true, a, b)[1]);
       changeTurn();
     }
  }, [turn])
@@ -57,7 +57,7 @@ const useHalma = (boardSize) => {
           console.log("ADA YANG DI GOAL");
         }
         for(let j=0;j<goal.length;j++){
-          computerDist.push(euclideanDistance(pawn.row,pawn.col,goal[j][0],goal[j][1]));
+          computerDist.push(euclideanDistance(pawn.row,pawn.col,goal[i][0],goal[i][1]));
         }
         if(computerDist.length){
           computerDistance += computerDist.reduce(function(a,b){
@@ -151,9 +151,77 @@ const useHalma = (boardSize) => {
       }
     }
     
-    // result = [value, bestMove];
-    // return result;
-    console.log("Result Akhir ",value);
+    result = [value, bestMove];
+    return result;
+  };
+
+  const simulatedAnnealing = (curS, owner) => {
+    let moveCurPawn = [];
+    moveCurPawn = generateAllMoveSet(curS, owner);
+    let max = null;
+    let s = null;
+
+    for(let i = 0; i < 100; i++) {
+     let randomState =  moveCurPawn[Math.floor(Math.random()*moveCurPawn.length)];
+     let h = heuristicFunction(randomState,2);
+     if(!max || h > max) {
+       max = h;
+       s = randomState;
+     }
+    }
+    return [max,s];
+  };
+
+  const minimaxLocal = (curD, curS, isMax, alpha, beta) => {
+    let result = [];
+
+    if(curD == 3 || curS.isFinalState()) {
+      let res = [heuristicFunction(curS, 2), curS];
+      return res;
+    }
+
+    let moveCurPawn = [];
+    let value = 0;
+    if(isMax) {
+      value = Number.NEGATIVE_INFINITY;
+      for(let i = 0; i < 5; i++) {
+        moveCurPawn.push(simulatedAnnealing(curS, 2)[1]);
+      }
+    }
+    else {
+      value = Number.POSITIVE_INFINITY;
+      for(let i = 0; i < 5; i++) {
+        moveCurPawn.push(simulatedAnnealing(curS, 1)[1]);
+      }
+    }
+
+    let bestMove = new State(boardSize);
+    
+    for(let i = 0; i < moveCurPawn.length; i++) {
+      let resMinimax = minimaxLocal(curD+1, moveCurPawn[i], !isMax, alpha, beta);
+      console.log("RESULT MINIMAX: ",resMinimax[0]);
+      if(isMax && value < resMinimax[0]) {
+        value = resMinimax[0];
+        bestMove = moveCurPawn[i];
+        alpha = Math.max(alpha, resMinimax[0]);
+        if(beta <= alpha) {
+          result = [alpha, bestMove];
+          return result;
+        }
+      }
+        
+      else if(!isMax && value > resMinimax[0]) {
+        value = resMinimax[0];
+        bestMove = moveCurPawn[i];
+        beta = Math.min(beta, resMinimax[0]);
+        value = beta;
+        if(beta <= alpha) {
+          result = [beta, bestMove];
+          return result;
+        }
+      }
+    }
+    
     result = [value, bestMove];
     return result;
   };
