@@ -2,14 +2,29 @@ import React from "react";
 import useHalma from "../hooks/useHalma";
 import useSelection from "../hooks/useSelection";
 import Pawn from "./Pawn";
+import { useTimer } from "react-timer-hook";
 
 const HalmaBoard = (props) => {
-  const { size } = props;
+  const { size, timer } = props;
   const [selected, setSelectedTile, setTargetTile] = useSelection();
   const { state, getPawnInPosition, turn, changeTurn, movePawn } = useHalma(
     size,
     3
   );
+
+  const newTimer = () => {
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + timer);
+    return time;
+  };
+
+  const { seconds, restart } = useTimer({
+    expiryTimestamp: newTimer(),
+    onExpire: () => {
+      restart(newTimer());
+      changeTurn();
+    },
+  });
 
   const calculateCellWidth = () => 100 / size;
 
@@ -32,7 +47,7 @@ const HalmaBoard = (props) => {
         className="pb-2 text-3xl font-bold"
         style={{ color: turn === 1 ? "#00a2ff" : "#ff9a00" }}
       >
-        Player {turn}'s turn
+        ⭐ Player {turn}'s turn · ⏳ {seconds}s
       </div>
       <div className="flex flex-row flex-wrap w-full m-2">
         {state.board.board.map((row, i) => {
@@ -77,6 +92,7 @@ const HalmaBoard = (props) => {
                             // generateMoveset(i, j);
                           } else if (selected && !pawn) {
                             setTargetTile(i, j, movePawn);
+                            restart(newTimer());
                             changeTurn();
                             // movePawn(selected[0], selected[1], i, j);
                             // emptyMoves();
