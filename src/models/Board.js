@@ -31,16 +31,23 @@ export default class Board {
     return this.boardSize;
   }
 
+  isFinalTile(r, c, owner) {
+    if (owner === 1) {
+      return r + c - Math.floor(this.boardSize / 2) + 1 <= 0;
+    } else if (owner === 2) {
+      return r + c - Math.floor((3 * this.boardSize) / 2) + 1 >= 0;
+    }
+  }
+
   generateGoal(owner) {
-    const boardSize = this.getBoardSize()/2;
-    const goal = []
-    for(let i = 0; i < boardSize; i++) {
-      for(let j = 0; j < boardSize - i; j++) {
+    const boardSize = this.getBoardSize() / 2;
+    const goal = [];
+    for (let i = 0; i < boardSize; i++) {
+      for (let j = 0; j < boardSize - i; j++) {
         let pos = [];
-        if(owner == 2){
-          pos = [i,j];
-        }
-        else if(owner == 1){
+        if (owner == 2) {
+          pos = [i, j];
+        } else if (owner == 1) {
           pos = [boardSize - i - 1, boardSize - j - 1];
         }
         goal.push(pos);
