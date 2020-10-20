@@ -1,8 +1,0 @@
-{
-  "presets": ["react-app"],
-  "plugins": [
-    "transform-flow-strip-types",
-    "flow-react-proptypes",
-    "transform-object-rest-spread"
-  ]
-}
