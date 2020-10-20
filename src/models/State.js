@@ -78,7 +78,7 @@ export default class State {
 
     return isFinal1 || isFinal2;
   }
-
+  
   generateMoveset(r, c) {
     try {
       // 1. Check if (r,c) has a pawn
