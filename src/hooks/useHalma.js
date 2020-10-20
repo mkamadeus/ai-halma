@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { useTimer } from "react-timer-hook";
+import { useStopwatch, useTimer } from "react-timer-hook";
 import State from "../models/State";
 import useBoard from "./useBoard";
 import Swal from "sweetalert2";
+import { usePlayerStopwatch } from "./usePlayerStopwatch";
 
 const useHalma = (boardSize, depth, timer) => {
   const { state, setState } = useBoard(boardSize);
@@ -20,16 +21,26 @@ const useHalma = (boardSize, depth, timer) => {
     },
   });
 
+  const [timer1, start1, pause1] = usePlayerStopwatch();
+  const [timer2, start2, pause2] = usePlayerStopwatch();
+
   useEffect(() => {
     const newState = state.copyState();
 
     if (newState.isFinalState()) {
       pause();
-      Swal.fire(`Player ${turn === 1 ? 2 : 1} wins!`);
+      pause1();
+      pause2();
+      Swal.fire(
+        `Player ${turn === 1 ? 2 : 1} wins!`,
+        `Player 1 Time : ${timer1}s | Player 2 Time : ${timer2}s`
+        // `Player 2 Time : ${timer2}s`
+      );
     } else {
       if (newState.pawnList1.length === 0) {
         newState.initialState();
         setState(newState);
+        start1();
       }
 
       if (turn === 1) {
@@ -64,7 +75,16 @@ const useHalma = (boardSize, depth, timer) => {
   // Change turn
   const changeTurn = () => {
     restart(newTimer());
-    setTurn(turn === 1 ? 2 : 1);
+    if (turn === 1) {
+      pause1();
+      start2();
+      setTurn(2);
+    } else if (turn === 2) {
+      pause2();
+      start1();
+      setTurn(1);
+    }
+    // setTurn(turn === 1 ? 2 : 1);
   };
 
   const getPawnInPosition = (r, c) => {
