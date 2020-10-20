@@ -33,14 +33,14 @@ const useHalma = (boardSize, depth, timer) => {
       pause2();
       Swal.fire(
         `Player ${turn === 1 ? 2 : 1} wins!`,
-        `Player 1 Time : ${timer1}s | Player 2 Time : ${timer2}s`
+        `Player 1 Time : ${timer1}ms | Player 2 Time : ${timer2}ms`
         // `Player 2 Time : ${timer2}s`
       );
     } else {
       if (newState.pawnList1.length === 0) {
+        start1();
         newState.initialState();
         setState(newState);
-        start1();
       }
 
       if (turn === 1) {
@@ -99,58 +99,62 @@ const useHalma = (boardSize, depth, timer) => {
 
   const euclideanDistance = (r1, c1, r2, c2) => {
     // return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(c2 - c1, 2));
-    return Math.sqrt(Math.pow(r2-r1,2)+Math.pow(c2-c1,2));
+    return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(c2 - c1, 2));
   };
 
   const heuristicFunction = (curS, owner) => {
     let goal = curS.board.generateGoal(owner);
-    let goalOp = curS.board.generateGoal(3-owner);
+    let goalOp = curS.board.generateGoal(3 - owner);
     let myDistance = 0.0;
     let opDistance = 0.0;
     let pawn = null;
     let value = 0.0;
-    for(let i = 0; i <curS.board.getBoardSize(); i++){
-      for(let j = 0; j<curS.board.getBoardSize(); j++){
-        pawn = curS.getPawnInPosition(i,j);
-        if(pawn){
-          if(pawn.owner == owner){
+    for (let i = 0; i < curS.board.getBoardSize(); i++) {
+      for (let j = 0; j < curS.board.getBoardSize(); j++) {
+        pawn = curS.getPawnInPosition(i, j);
+        if (pawn) {
+          if (pawn.owner == owner) {
             let myDist = [];
-            for(let k = 0; k < goal.length; k++){
-              if(curS.getPawnInPosition(goal[k][0],goal[k][1])){
-                if(curS.getPawnInPosition(goal[k][0],goal[k][1]).owner!=owner){
-                  myDist.push(euclideanDistance(i,j,goal[k][0],goal[k][1]));
+            for (let k = 0; k < goal.length; k++) {
+              if (curS.getPawnInPosition(goal[k][0], goal[k][1])) {
+                if (
+                  curS.getPawnInPosition(goal[k][0], goal[k][1]).owner != owner
+                ) {
+                  myDist.push(euclideanDistance(i, j, goal[k][0], goal[k][1]));
                 }
-              }
-              else{
-                myDist.push(euclideanDistance(i,j,goal[k][0],goal[k][1]));
+              } else {
+                myDist.push(euclideanDistance(i, j, goal[k][0], goal[k][1]));
               }
             }
-            if(myDist.length == 0){
+            if (myDist.length == 0) {
               myDistance += 50;
-            }
-            else{
-              myDistance -= myDist.reduce(function(a, b) {
+            } else {
+              myDistance -= myDist.reduce(function (a, b) {
                 return Math.max(a, b);
               });
             }
-          }
-          else{
+          } else {
             let opDist = [];
-            for(let k = 0; k < goalOp.length; k++){
-              if(curS.getPawnInPosition(goalOp[k][0],goalOp[k][1])){
-                if(curS.getPawnInPosition(goalOp[k][0],goalOp[k][1]).owner!= (3-owner)){
-                  opDist.push(euclideanDistance(i,j,goalOp[k][0],goalOp[k][1]));
+            for (let k = 0; k < goalOp.length; k++) {
+              if (curS.getPawnInPosition(goalOp[k][0], goalOp[k][1])) {
+                if (
+                  curS.getPawnInPosition(goalOp[k][0], goalOp[k][1]).owner !=
+                  3 - owner
+                ) {
+                  opDist.push(
+                    euclideanDistance(i, j, goalOp[k][0], goalOp[k][1])
+                  );
                 }
-              }
-              else{
-                opDist.push(euclideanDistance(i,j,goalOp[k][0],goalOp[k][1]));
+              } else {
+                opDist.push(
+                  euclideanDistance(i, j, goalOp[k][0], goalOp[k][1])
+                );
               }
             }
-            if(opDist.length == 0){
+            if (opDist.length == 0) {
               opDistance += 50;
-            }
-            else{
-              opDistance -= opDist.reduce(function(a, b) {
+            } else {
+              opDistance -= opDist.reduce(function (a, b) {
                 return Math.max(a, b);
               });
             }
@@ -160,8 +164,8 @@ const useHalma = (boardSize, depth, timer) => {
     }
     value = myDistance - opDistance;
     return value;
-  }
-  
+  };
+
   const generateAllMoveSet = (curS, ply) => {
     const allMoveset = [];
     const selectedPawnList = ply === 1 ? curS.pawnList1 : curS.pawnList2;
@@ -194,7 +198,6 @@ const useHalma = (boardSize, depth, timer) => {
     if (curD === depth || curS.isFinalState()) {
       let res = [heuristicFunction(curS, turn), curS];
       return res;
-      
     }
 
     let moveCurPawn = [];
@@ -283,7 +286,6 @@ const useHalma = (boardSize, depth, timer) => {
   };
 
   const minimaxLocal = (curD, curS, isMax, alpha, beta, turn) => {
-    console.log(curD, curS);
     // Base Case:
     // If depth limit reach or current state is already final
     // Compute state heuristic function

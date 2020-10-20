@@ -27,7 +27,6 @@ export default class State {
 
   initialState() {
     const n = Math.floor(this.board.getBoardSize() / 2);
-    console.log("State n =", n);
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n - i; j++) {
         // Initiate player 1
@@ -78,7 +77,7 @@ export default class State {
 
     return isFinal1 || isFinal2;
   }
-  
+
   generateMoveset(r, c) {
     try {
       // 1. Check if (r,c) has a pawn
