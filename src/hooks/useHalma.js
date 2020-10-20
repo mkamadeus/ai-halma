@@ -16,9 +16,9 @@ const useHalma = (boardSize, depth) => {
   useEffect(() => {
     const newState = state.copyState();
 
-    if(turn==2){
+    if(turn === 2){
       setState(
-        minimax(
+        minimax(  
           1,
           newState,
           true,
@@ -27,9 +27,9 @@ const useHalma = (boardSize, depth) => {
           turn
         )[1]  
       );
-    }
   
     changeTurn();
+    }
 
   }, [turn]);
 
