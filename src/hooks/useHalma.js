@@ -34,7 +34,6 @@ const useHalma = (boardSize, depth, timer) => {
       Swal.fire(
         `Player ${turn === 1 ? 2 : 1} wins!`,
         `Player 1 Time : ${timer1}ms | Player 2 Time : ${timer2}ms`
-        // `Player 2 Time : ${timer2}s`
       );
     } else {
       if (newState.pawnList1.length === 0) {
