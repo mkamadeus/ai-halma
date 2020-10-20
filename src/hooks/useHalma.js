@@ -46,7 +46,7 @@ const useHalma = (boardSize, depth, timer) => {
         changeTurn();
       } else if (turn === 2) {
         setState(
-          minimaxLocal(
+          minimax(
             1,
             newState,
             true,
@@ -106,7 +106,7 @@ const useHalma = (boardSize, depth, timer) => {
               }
             }
             if(myDist.length == 0){
-              myDistance += 50;
+              myDistance += 500;
             }
             else{
               myDistance -= myDist.reduce(function(a, b) {
@@ -263,7 +263,6 @@ const useHalma = (boardSize, depth, timer) => {
   };
 
   const minimaxLocal = (curD, curS, isMax, alpha, beta, turn) => {
-    console.log(curD, curS);
     // Base Case:
     // If depth limit reach or current state is already final
     // Compute state heuristic function
