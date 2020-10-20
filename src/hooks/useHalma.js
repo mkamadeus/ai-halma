@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTimer } from "react-timer-hook";
 import State from "../models/State";
 import useBoard from "./useBoard";
+import Swal from "sweetalert2";
 
 const useHalma = (boardSize, depth, timer) => {
   const { state, setState } = useBoard(boardSize);
@@ -12,52 +13,51 @@ const useHalma = (boardSize, depth, timer) => {
     return time;
   };
 
-  const { seconds, restart } = useTimer({
+  const { seconds, pause, restart } = useTimer({
     expiryTimestamp: newTimer(),
     onExpire: () => {
       changeTurn();
     },
   });
 
-  // useEffect(() => {
-  //   const newState = state.copyState();
-  //   newState.initialState();
-  //   setState(newState);
-  // }, []);
-
-  // If bot...
   useEffect(() => {
     const newState = state.copyState();
-    if (newState.pawnList1.length === 0) {
-      newState.initialState();
-      setState(newState);
-    }
-    console.log("tetst", newState);
-    if (turn === 1) {
-      setState(
-        minimaxLocal(
-          1,
-          newState,
-          true,
-          Number.NEGATIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          turn
-        )[1]
-      );
-      changeTurn();
-    } else if (turn === 2) {
-      setState(
-        minimaxLocal(
-          1,
-          newState,
-          true,
-          Number.NEGATIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          turn
-        )[1]
-      );
 
-      changeTurn();
+    if (newState.isFinalState()) {
+      pause();
+      Swal.fire(`Player ${turn === 1 ? 2 : 1} wins!`);
+    } else {
+      if (newState.pawnList1.length === 0) {
+        newState.initialState();
+        setState(newState);
+      }
+
+      if (turn === 1) {
+        setState(
+          minimaxLocal(
+            1,
+            newState,
+            true,
+            Number.NEGATIVE_INFINITY,
+            Number.POSITIVE_INFINITY,
+            turn
+          )[1]
+        );
+        changeTurn();
+      } else if (turn === 2) {
+        setState(
+          minimaxLocal(
+            1,
+            newState,
+            true,
+            Number.NEGATIVE_INFINITY,
+            Number.POSITIVE_INFINITY,
+            turn
+          )[1]
+        );
+
+        changeTurn();
+      }
     }
   }, [turn]);
 

@@ -8,7 +8,7 @@ function App() {
         className="flex flex-col justify-center items-center w-full h-screen"
         style={{ maxWidth: "800px" }}
       >
-        <HalmaBoard size={16} timer={10} />
+        <HalmaBoard size={6} timer={10} />
       </div>
     </div>
   );

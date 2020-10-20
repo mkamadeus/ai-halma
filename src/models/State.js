@@ -55,8 +55,8 @@ export default class State {
   isFinalState() {
     const boardSize = this.board.getBoardSize();
     let isFinal2 = true;
-    for (let i = 0; i < boardSize; i++) {
-      for (let j = 0; j < boardSize; j++) {
+    for (let i = 0; i < boardSize / 2; i++) {
+      for (let j = 0; j < boardSize / 2 - i; j++) {
         if (this.board.getBoard(i, j) !== 2) {
           isFinal2 = false;
           break;
@@ -66,14 +66,14 @@ export default class State {
     }
 
     let isFinal1 = true;
-    for (let i = 0; i < boardSize; i++) {
-      for (let j = 0; j < boardSize; j++) {
+    for (let i = 0; i < boardSize / 2; i++) {
+      for (let j = 0; j < boardSize / 2 - i; j++) {
         if (this.board.getBoard(boardSize - i - 1, boardSize - j - 1) !== 1) {
           isFinal1 = false;
           break;
         }
       }
-      if (!isFinal2) break;
+      if (!isFinal1) break;
     }
 
     return isFinal1 || isFinal2;
