@@ -86,6 +86,7 @@ const useHalma = (boardSize, depth, timer) => {
     let goal = curS.board.generateGoal(owner).slice();
     let pawn = null;
     let notInGoal = 0;
+
     if (owner === 2) {
       for (let i = 0; i < curS.pawnList2.length; i++) {
         let count = true;
