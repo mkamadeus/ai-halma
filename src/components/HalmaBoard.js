@@ -79,10 +79,10 @@ const HalmaBoard = (props) => {
                             state.currentMove[1] === j))
                           ? "bg-yellow-300"
                           : ""
-                      } ${state.board.isFinalTile(i, j, 1) ? "bg-blue-200" : ""}
+                      } ${state.board.isStartingTile(i, j, 1) ? "bg-blue-200" : ""}
                       
                       ${
-                        state.board.isFinalTile(i, j, 2) ? "bg-orange-200" : ""
+                        state.board.isStartingTile(i, j, 2) ? "bg-orange-200" : ""
                       }`}
                       onClick={(_) => {
                         const pawn = getPawnInPosition(i, j);

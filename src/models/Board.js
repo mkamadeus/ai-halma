@@ -31,7 +31,7 @@ export default class Board {
     return this.boardSize;
   }
 
-  isFinalTile(r, c, owner) {
+  isStartingTile(r, c, owner) {
     if (owner === 1) {
       return r + c - Math.floor(this.boardSize / 2) + 1 <= 0;
     } else if (owner === 2) {
@@ -45,10 +45,10 @@ export default class Board {
     for (let i = 0; i < boardSize; i++) {
       for (let j = 0; j < boardSize - i; j++) {
         let pos = [];
-        if (owner == 2) {
+        if (owner === 2) {
           pos = [i, j];
-        } else if (owner == 1) {
-          pos = [boardSize - i - 1, boardSize - j - 1];
+        } else if (owner === 1) {
+          pos = [this.getBoardSize() - i - 1, this.getBoardSize() - j - 1];
         }
         goal.push(pos);
       }
