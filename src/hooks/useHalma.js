@@ -52,32 +52,58 @@ const useHalma = (boardSize, depth) => {
   };
 
   const heuristicFunction = (curS, owner) => {
-    let computerDistance = 0.0;
+    let myDistance = 0.0;
     let goal = [];
     goal = curS.board.generateGoal(owner).slice();
     let pawn = null;
-    for (let i = 0; i < curS.pawnList2.length; i++) {
-      let count = true;
-      pawn = curS.pawnList2[i];
-      for(let j = 0; j < goal.length; j++){
-        if((pawn.row == goal[j][0].row) && (pawn.col == goal[j][1])){
-          count = false;
+    let notInGoal = 0;
+    if(owner===2){
+      for (let i = 0; i < curS.pawnList2.length; i++) {
+        let count = true;
+        pawn = curS.pawnList2[i];
+        for(let j = 0; j < goal.length; j++){
+          if((pawn.row == goal[j][0]) && (pawn.col == goal[j][1])){
+            count = false;
+          }
+        }
+        if(count){
+          notInGoal += 1;
+          for(let j = 0; j < goal.length; j++){
+            myDistance += euclideanDistance(pawn.row, pawn.col, goal[j][0], goal[j][1]);
+          }
+        }
+        else{
+          myDistance -= 50;
         }
       }
-      let computerDist = [];
-      if(count){
-        for(let j = 0; j < goal.length; j++){
-          computerDist.push(euclideanDistance(pawn.row, pawn.col, goal[j][0], goal[j][1]));
-        }
-        computerDistance += computerDist.reduce(function (a, b) {return Math.min(a, b);});  
-      } 
-    }
-    if(owner===1){
-      return computerDistance;
+      if(notInGoal == 0){
+        return 500;  
+      }
     }
     else{
-      return -1 * computerDistance;
+      for (let i = 0; i < curS.pawnList1.length; i++) {
+        let count = true;
+        pawn = curS.pawnList1[i];
+        for(let j = 0; j < goal.length; j++){
+          if((pawn.row == goal[j][0]) && (pawn.col == goal[j][1])){
+            count = false;
+          }
+        }
+        if(count){
+          notInGoal+=1;
+          for(let j = 0; j < goal.length; j++){
+            myDistance += euclideanDistance(pawn.row, pawn.col, goal[j][0], goal[j][1]);
+          }
+        }
+        else{
+          myDistance -= 50;
+        }
+      }
+      if(notInGoal==0){
+        return 500;  
+      }
     }
+    return -1 * myDistance;
   };
 
   const generateAllMoveSet = (curS, ply) => {
