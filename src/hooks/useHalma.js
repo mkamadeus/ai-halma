@@ -24,76 +24,50 @@ const useHalma = (boardSize, depth, timer) => {
   const [timer1, start1, pause1] = usePlayerStopwatch();
   const [timer2, start2, pause2] = usePlayerStopwatch();
 
-  // useEffect(() => {
-  //   const newState = state.copyState();
-
-  //   if (newState.isFinalState()) {
-  //     pause();
-  //     pause1();
-  //     pause2();
-  //     Swal.fire(
-  //       `Player ${turn === 1 ? 2 : 1} wins!`,
-  //       `Player 1 Time : ${timer1}s | Player 2 Time : ${timer2}s`
-  //       // `Player 2 Time : ${timer2}s`
-  //     );
-  //   } else {
-  //     if (newState.pawnList1.length === 0) {
-  //       newState.initialState();
-  //       setState(newState);
-  //       start1();
-  //     }
-
-  //     if (turn === 1) {
-  //       setState(
-  //         minimaxLocal(
-  //           1,
-  //           newState,
-  //           true,
-  //           Number.NEGATIVE_INFINITY,
-  //           Number.POSITIVE_INFINITY,
-  //           turn
-  //         )[1]
-  //       );
-  //       changeTurn();
-  //     } else if (turn === 2) {
-  //       setState(
-  //         minimaxLocal(
-  //           1,
-  //           newState,
-  //           true,
-  //           Number.NEGATIVE_INFINITY,
-  //           Number.POSITIVE_INFINITY,
-  //           turn
-  //         )[1]
-  //       );
-
-  //       changeTurn();
-  //     }
-  //   }
-  // }, [turn]);
-  useEffect(() => {
-    const newState = state.copyState();
-    newState.initialState();
-    setState(newState);
-  }, []);
-
-  // If bot...
   useEffect(() => {
     const newState = state.copyState();
 
-    if (turn === 2) {
-      setState(
-        minimaxLocal(
-          1,
-          newState,
-          true,
-          Number.NEGATIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          turn
-        )[1]
+    if (newState.isFinalState()) {
+      pause();
+      pause1();
+      pause2();
+      Swal.fire(
+        `Player ${turn === 1 ? 2 : 1} wins!`,
+        `Player 1 Time : ${timer1}ms | Player 2 Time : ${timer2}ms`
       );
+    } else {
+      if (newState.pawnList1.length === 0) {
+        start1();
+        newState.initialState();
+        setState(newState);
+      }
 
-      changeTurn();
+      if (turn === 1) {
+        setState(
+          minimaxLocal(
+            1,
+            newState,
+            true,
+            Number.NEGATIVE_INFINITY,
+            Number.POSITIVE_INFINITY,
+            turn
+          )[1]
+        );
+        changeTurn();
+      } else if (turn === 2) {
+        setState(
+          minimaxLocal(
+            1,
+            newState,
+            true,
+            Number.NEGATIVE_INFINITY,
+            Number.POSITIVE_INFINITY,
+            turn
+          )[1]
+        );
+
+        changeTurn();
+      }
     }
   }, [turn]);
 
@@ -123,69 +97,72 @@ const useHalma = (boardSize, depth, timer) => {
   };
 
   const euclideanDistance = (r1, c1, r2, c2) => {
+    // return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(c2 - c1, 2));
     return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(c2 - c1, 2));
   };
 
   const heuristicFunction = (curS, owner) => {
+    let goal = curS.board.generateGoal(owner);
+    let goalOp = curS.board.generateGoal(3 - owner);
     let myDistance = 0.0;
-    let goal = curS.board.generateGoal(owner).slice();
+    let opDistance = 0.0;
     let pawn = null;
-    let notInGoal = 0;
-
-    if (owner === 2) {
-      for (let i = 0; i < curS.pawnList2.length; i++) {
-        let count = true;
-        pawn = curS.pawnList2[i];
-        for (let j = 0; j < goal.length; j++) {
-          if (pawn.row == goal[j][0] && pawn.col == goal[j][1]) {
-            count = false;
+    let value = 0.0;
+    for (let i = 0; i < curS.board.getBoardSize(); i++) {
+      for (let j = 0; j < curS.board.getBoardSize(); j++) {
+        pawn = curS.getPawnInPosition(i, j);
+        if (pawn) {
+          if (pawn.owner == owner) {
+            let myDist = [];
+            for (let k = 0; k < goal.length; k++) {
+              if (curS.getPawnInPosition(goal[k][0], goal[k][1])) {
+                if (
+                  curS.getPawnInPosition(goal[k][0], goal[k][1]).owner != owner
+                ) {
+                  myDist.push(euclideanDistance(i, j, goal[k][0], goal[k][1]));
+                }
+              } else {
+                myDist.push(euclideanDistance(i, j, goal[k][0], goal[k][1]));
+              }
+            }
+            if (myDist.length == 0) {
+              myDistance += 50;
+            } else {
+              myDistance -= myDist.reduce(function (a, b) {
+                return Math.max(a, b);
+              });
+            }
+          } else {
+            let opDist = [];
+            for (let k = 0; k < goalOp.length; k++) {
+              if (curS.getPawnInPosition(goalOp[k][0], goalOp[k][1])) {
+                if (
+                  curS.getPawnInPosition(goalOp[k][0], goalOp[k][1]).owner !=
+                  3 - owner
+                ) {
+                  opDist.push(
+                    euclideanDistance(i, j, goalOp[k][0], goalOp[k][1])
+                  );
+                }
+              } else {
+                opDist.push(
+                  euclideanDistance(i, j, goalOp[k][0], goalOp[k][1])
+                );
+              }
+            }
+            if (opDist.length == 0) {
+              opDistance += 50;
+            } else {
+              opDistance -= opDist.reduce(function (a, b) {
+                return Math.max(a, b);
+              });
+            }
           }
         }
-        if (count) {
-          notInGoal += 1;
-          for (let j = 0; j < goal.length; j++) {
-            myDistance += euclideanDistance(
-              pawn.row,
-              pawn.col,
-              goal[j][0],
-              goal[j][1]
-            );
-          }
-        } else {
-          myDistance -= 50;
-        }
-      }
-      if (notInGoal == 0) {
-        return 500;
-      }
-    } else {
-      for (let i = 0; i < curS.pawnList1.length; i++) {
-        let count = true;
-        pawn = curS.pawnList1[i];
-        for (let j = 0; j < goal.length; j++) {
-          if (pawn.row == goal[j][0] && pawn.col == goal[j][1]) {
-            count = false;
-          }
-        }
-        if (count) {
-          notInGoal += 1;
-          for (let j = 0; j < goal.length; j++) {
-            myDistance += euclideanDistance(
-              pawn.row,
-              pawn.col,
-              goal[j][0],
-              goal[j][1]
-            );
-          }
-        } else {
-          myDistance -= 50;
-        }
-      }
-      if (notInGoal == 0) {
-        return 500;
       }
     }
-    return -1 * myDistance;
+    value = myDistance - opDistance;
+    return value;
   };
 
   const generateAllMoveSet = (curS, ply) => {
@@ -233,7 +210,6 @@ const useHalma = (boardSize, depth, timer) => {
     }
 
     let bestMove = new State(boardSize);
-
     for (let i = 0; i < moveCurPawn.length; i++) {
       let resMinimax = minimax(
         curD + 1,
@@ -309,7 +285,6 @@ const useHalma = (boardSize, depth, timer) => {
   };
 
   const minimaxLocal = (curD, curS, isMax, alpha, beta, turn) => {
-    console.log(curD, curS);
     // Base Case:
     // If depth limit reach or current state is already final
     // Compute state heuristic function

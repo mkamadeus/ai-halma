@@ -27,7 +27,6 @@ export default class State {
 
   initialState() {
     const n = Math.floor(this.board.getBoardSize() / 2);
-    console.log("State n =", n);
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n - i; j++) {
         // Initiate player 1
