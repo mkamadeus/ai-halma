@@ -1,40 +1,68 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTimer } from "react-timer-hook";
 import State from "../models/State";
 import useBoard from "./useBoard";
 
-const useHalma = (boardSize, depth) => {
+const useHalma = (boardSize, depth, timer) => {
   const { state, setState } = useBoard(boardSize);
   const [turn, setTurn] = useState(1);
+  const newTimer = () => {
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + timer);
+    return time;
+  };
 
-  useEffect(() => {
-    const newState = state.copyState();
-    newState.initialState();
-    setState(newState);
-  }, []);
+  const { seconds, restart } = useTimer({
+    expiryTimestamp: newTimer(),
+    onExpire: () => {
+      changeTurn();
+    },
+  });
+
+  // useEffect(() => {
+  //   const newState = state.copyState();
+  //   newState.initialState();
+  //   setState(newState);
+  // }, []);
 
   // If bot...
   useEffect(() => {
     const newState = state.copyState();
-
-    if(turn === 2){
+    if (newState.pawnList1.length === 0) {
+      newState.initialState();
+    }
+    console.log("tetst", newState);
+    if (turn === 1) {
       setState(
-        minimax(  
+        minimaxLocal(
           1,
           newState,
           true,
           Number.NEGATIVE_INFINITY,
           Number.POSITIVE_INFINITY,
           turn
-        )[1]  
+        )[1]
       );
-  
-    changeTurn();
-    }
+      changeTurn();
+    } else if (turn === 2) {
+      setState(
+        minimaxLocal(
+          1,
+          newState,
+          true,
+          Number.NEGATIVE_INFINITY,
+          Number.POSITIVE_INFINITY,
+          turn
+        )[1]
+      );
 
+      changeTurn();
+    }
   }, [turn]);
 
   // Change turn
   const changeTurn = () => {
+    restart(newTimer());
     setTurn(turn === 1 ? 2 : 1);
   };
 
@@ -58,101 +86,92 @@ const useHalma = (boardSize, depth) => {
     goal = curS.board.generateGoal(owner).slice();
     let pawn = null;
     let notInGoal = 0;
-    if(owner===2){
+    if (owner === 2) {
       for (let i = 0; i < curS.pawnList2.length; i++) {
         let count = true;
         pawn = curS.pawnList2[i];
-        for(let j = 0; j < goal.length; j++){
-          if((pawn.row == goal[j][0]) && (pawn.col == goal[j][1])){
+        for (let j = 0; j < goal.length; j++) {
+          if (pawn.row == goal[j][0] && pawn.col == goal[j][1]) {
             count = false;
           }
         }
-        if(count){
+        if (count) {
           notInGoal += 1;
-          for(let j = 0; j < goal.length; j++){
-            myDistance += euclideanDistance(pawn.row, pawn.col, goal[j][0], goal[j][1]);
+          for (let j = 0; j < goal.length; j++) {
+            myDistance += euclideanDistance(
+              pawn.row,
+              pawn.col,
+              goal[j][0],
+              goal[j][1]
+            );
           }
-        }
-        else{
+        } else {
           myDistance -= 50;
         }
       }
-      if(notInGoal == 0){
-        return 500;  
+      if (notInGoal == 0) {
+        return 500;
       }
-    }
-    else{
+    } else {
       for (let i = 0; i < curS.pawnList1.length; i++) {
         let count = true;
         pawn = curS.pawnList1[i];
-        for(let j = 0; j < goal.length; j++){
-          if((pawn.row == goal[j][0]) && (pawn.col == goal[j][1])){
+        for (let j = 0; j < goal.length; j++) {
+          if (pawn.row == goal[j][0] && pawn.col == goal[j][1]) {
             count = false;
           }
         }
-        if(count){
-          notInGoal+=1;
-          for(let j = 0; j < goal.length; j++){
-            myDistance += euclideanDistance(pawn.row, pawn.col, goal[j][0], goal[j][1]);
+        if (count) {
+          notInGoal += 1;
+          for (let j = 0; j < goal.length; j++) {
+            myDistance += euclideanDistance(
+              pawn.row,
+              pawn.col,
+              goal[j][0],
+              goal[j][1]
+            );
           }
-        }
-        else{
+        } else {
           myDistance -= 50;
         }
       }
-      if(notInGoal==0){
-        return 500;  
+      if (notInGoal == 0) {
+        return 500;
       }
     }
     return -1 * myDistance;
   };
 
   const generateAllMoveSet = (curS, ply) => {
-    const m = [];
-    const arrOfS = [];
-    if (ply == 1) {
-      for (let p = 0; p < curS.pawnList1.length; p++) {
-        let m = curS.generateMoveset(
-          curS.pawnList1[p].row,
-          curS.pawnList1[p].col
+    const allMoveset = [];
+    const selectedPawnList = ply === 1 ? curS.pawnList1 : curS.pawnList2;
+
+    for (let p = 0; p < selectedPawnList.length; p++) {
+      let moveset = curS.generateMoveset(
+        selectedPawnList[p].row,
+        selectedPawnList[p].col
+      );
+      for (let i = 0; i < moveset.length; i++) {
+        let s = curS.copyState();
+        s.movePawn(
+          selectedPawnList[p].row,
+          selectedPawnList[p].col,
+          moveset[i][0],
+          moveset[i][1]
         );
-        for (let i = 0; i < m.length; i++) {
-          let s = curS.copyState();
-          s.movePawn(
-            curS.pawnList1[p].row,
-            curS.pawnList1[p].col,
-            m[i][0],
-            m[i][1]
-          );
-          arrOfS.push(s);
-        }
+        allMoveset.push(s);
       }
     }
-    if (ply == 2) {
-      for (let p = 0; p < curS.pawnList2.length; p++) {
-        let m = curS.generateMoveset(
-          curS.pawnList2[p].row,
-          curS.pawnList2[p].col
-        );
-        for (let i = 0; i < m.length; i++) {
-          let s = curS.copyState();
-          s.movePawn(
-            curS.pawnList2[p].row,
-            curS.pawnList2[p].col,
-            m[i][0],
-            m[i][1]
-          );
-          arrOfS.push(s);
-        }
-      }
-    }
-    return arrOfS;
+
+    return allMoveset;
   };
 
   const minimax = (curD, curS, isMax, alpha, beta, turn) => {
     let result = [];
-
-    if (curD === 3 || curS.isFinalState()) {
+    // Base Case:
+    // If depth limit reached or final state reached...
+    // Calculate heuristic value
+    if (curD === depth || curS.isFinalState()) {
       let res = [heuristicFunction(curS, turn), curS];
       return res;
     }
@@ -161,16 +180,23 @@ const useHalma = (boardSize, depth) => {
     let value = 0;
     if (isMax) {
       value = Number.NEGATIVE_INFINITY;
-      moveCurPawn = generateAllMoveSet(curS, 2);
+      moveCurPawn = generateAllMoveSet(curS, turn);
     } else {
       value = Number.POSITIVE_INFINITY;
-      moveCurPawn = generateAllMoveSet(curS, 1);
+      moveCurPawn = generateAllMoveSet(curS, turn === 2 ? 1 : 2);
     }
 
     let bestMove = new State(boardSize);
 
     for (let i = 0; i < moveCurPawn.length; i++) {
-      let resMinimax = minimax(curD + 1, moveCurPawn[i], !isMax, alpha, beta, turn);
+      let resMinimax = minimax(
+        curD + 1,
+        moveCurPawn[i],
+        !isMax,
+        alpha,
+        beta,
+        turn
+      );
       if (isMax && value < resMinimax[0]) {
         value = resMinimax[0];
         bestMove = moveCurPawn[i];
@@ -202,7 +228,7 @@ const useHalma = (boardSize, depth) => {
     let s = null;
 
     // Scheduling functions
-    let temperatureSchedule = (iteration, T) => T - iteration +(0.5*iteration);
+    let temperatureSchedule = (iteration, T) => T - iteration + 0.5 * iteration;
     let randomWalkProbability = (delta, iteration) =>
       Math.exp(delta / temperatureSchedule(iteration));
 
@@ -216,7 +242,7 @@ const useHalma = (boardSize, depth) => {
         moveCurPawn[Math.floor(Math.random() * moveCurPawn.length)];
 
       // Calculate state value
-      let h = heuristicFunction(randomState, 2);
+      let h = heuristicFunction(randomState, owner);
 
       if (!max || h > max) {
         // If the random state is better, gotcha
@@ -236,12 +262,13 @@ const useHalma = (boardSize, depth) => {
     return [max, s];
   };
 
-  const minimaxLocal = (curD, curS, isMax, alpha, beta) => {
+  const minimaxLocal = (curD, curS, isMax, alpha, beta, turn) => {
+    console.log(curD, curS);
     // Base Case:
     // If depth limit reach or current state is already final
     // Compute state heuristic function
     if (curD === depth || curS.isFinalState()) {
-      return [heuristicFunction(curS, 2), curS];
+      return [heuristicFunction(curS, turn), curS];
     }
 
     // If current iteration is finding the MAX...
@@ -254,7 +281,9 @@ const useHalma = (boardSize, depth) => {
     // Generate 5 random move
     let moveCurPawn = [];
     for (let i = 0; i < 10; i++) {
-      moveCurPawn.push(simulatedAnnealing(curS, isMax ? 2 : 1)[1]);
+      moveCurPawn.push(
+        simulatedAnnealing(curS, isMax ? turn : turn === 2 ? 1 : 2)[1]
+      );
     }
 
     for (let i = 0; i < moveCurPawn.length; i++) {
@@ -264,7 +293,8 @@ const useHalma = (boardSize, depth) => {
         moveCurPawn[i],
         !isMax,
         alpha,
-        beta
+        beta,
+        turn
       );
 
       // If currently is finding MAX and the result is better than the current state...
@@ -296,7 +326,15 @@ const useHalma = (boardSize, depth) => {
     return [bestMoveValue, bestMove];
   };
 
-  return { state, movePawn, turn, changeTurn, getPawnInPosition, minimax };
+  return {
+    state,
+    movePawn,
+    turn,
+    changeTurn,
+    getPawnInPosition,
+    minimax,
+    seconds,
+  };
 };
 
 export default useHalma;

@@ -99,21 +99,25 @@ export default class State {
         [1, 0],
         [1, 1],
       ];
-      const pawn = this.getPawnInPosition(r,c);
+      const pawn = this.getPawnInPosition(r, c);
       // 8 tiles around pawn
       for (let i = 0; i < possibleMoves.length; i++) {
         const curMove = [r + possibleMoves[i][0], c + possibleMoves[i][1]];
-        if(this.board.isFinalTile(pawn.row,pawn.col,3-pawn.owner)){
+        if (this.board.isFinalTile(pawn.row, pawn.col, 3 - pawn.owner)) {
           if (
             this.board.isPositionValid(curMove[0], curMove[1]) &&
             !visited[curMove[0]][curMove[1]] &&
-            !this.board.getBoard(curMove[0], curMove[1]) && this.board.isFinalTile(pawn.row + possibleMoves[i][0],pawn.col + possibleMoves[i][1],3-pawn.owner)
+            !this.board.getBoard(curMove[0], curMove[1]) &&
+            this.board.isFinalTile(
+              pawn.row + possibleMoves[i][0],
+              pawn.col + possibleMoves[i][1],
+              3 - pawn.owner
+            )
           ) {
             moveset.push(curMove);
             visited[curMove[0]][curMove[1]] = true;
           }
-        }
-        else{
+        } else {
           if (
             this.board.isPositionValid(curMove[0], curMove[1]) &&
             !visited[curMove[0]][curMove[1]] &&
@@ -123,7 +127,6 @@ export default class State {
             visited[curMove[0]][curMove[1]] = true;
           }
         }
-        
       }
 
       // Find jumps
@@ -140,21 +143,24 @@ export default class State {
             curPos[0] + 2 * possibleMoves[i][0],
             curPos[1] + 2 * possibleMoves[i][1],
           ];
-          if(this.board.isFinalTile(pawn.row,pawn.col,3-pawn.owner)){
+          if (this.board.isFinalTile(pawn.row, pawn.col, 3 - pawn.owner)) {
             if (
               this.board.isPositionValid(curMove[0], curMove[1]) &&
               this.board.getBoard(curMove[0], curMove[1]) &&
               this.board.isPositionValid(curJumpMove[0], curJumpMove[1]) &&
               !visited[curJumpMove[0]][curJumpMove[1]] &&
               !this.board.getBoard(curJumpMove[0], curJumpMove[1]) &&
-              this.board.isFinalTile(pawn.row + 2 * possibleMoves[i][0], pawn.col + 2 * possibleMoves[i][1],3-pawn.owner)
+              this.board.isFinalTile(
+                pawn.row + 2 * possibleMoves[i][0],
+                pawn.col + 2 * possibleMoves[i][1],
+                3 - pawn.owner
+              )
             ) {
               moveset.push(curJumpMove);
               queue.push(curJumpMove);
               visited[curJumpMove[0]][curJumpMove[1]] = true;
             }
-          }
-          else{
+          } else {
             if (
               this.board.isPositionValid(curMove[0], curMove[1]) &&
               this.board.getBoard(curMove[0], curMove[1]) &&
@@ -168,7 +174,6 @@ export default class State {
             }
           }
         }
-        
       }
 
       // 3. Return array
