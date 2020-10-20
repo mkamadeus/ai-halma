@@ -99,14 +99,14 @@ export default class State {
         [1, 0],
         [1, 1],
       ];
-
+      const pawn = this.getPawnInPosition(r,c);
       // 8 tiles around pawn
       for (let i = 0; i < possibleMoves.length; i++) {
         const curMove = [r + possibleMoves[i][0], c + possibleMoves[i][1]];
         if (
           this.board.isPositionValid(curMove[0], curMove[1]) &&
           !visited[curMove[0]][curMove[1]] &&
-          !this.board.getBoard(curMove[0], curMove[1])
+          !this.board.getBoard(curMove[0], curMove[1]) && !this.board.isFinalTile(pawn.row,pawn.col,pawn.owner)
         ) {
           moveset.push(curMove);
           visited[curMove[0]][curMove[1]] = true;
