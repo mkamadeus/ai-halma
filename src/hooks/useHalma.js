@@ -5,7 +5,7 @@ import useBoard from "./useBoard";
 import Swal from "sweetalert2";
 import { usePlayerStopwatch } from "./usePlayerStopwatch";
 
-const useHalma = (boardSize, depth, timer) => {
+const useHalma = (boardSize, depth, timer, player1, player2) => {
   const { state, setState } = useBoard(boardSize);
   const [turn, setTurn] = useState(1);
   const newTimer = () => {
@@ -42,30 +42,31 @@ const useHalma = (boardSize, depth, timer) => {
         setState(newState);
       }
 
-      if (turn === 1) {
-        setState(
-          minimaxLocal(
-            1,
-            newState,
-            true,
-            Number.NEGATIVE_INFINITY,
-            Number.POSITIVE_INFINITY,
-            turn
-          )[1]
-        );
-        changeTurn();
-      } else if (turn === 2) {
-        setState(
-          minimaxLocal(
-            1,
-            newState,
-            true,
-            Number.NEGATIVE_INFINITY,
-            Number.POSITIVE_INFINITY,
-            turn
-          )[1]
-        );
+      console.log(newState);
 
+      if (
+        (turn === 1 && player1 !== "human") ||
+        (turn === 2 && player2 !== "human")
+      ) {
+        setState(
+          player1 === "minimaxlocal"
+            ? minimaxLocal(
+                1,
+                newState,
+                true,
+                Number.NEGATIVE_INFINITY,
+                Number.POSITIVE_INFINITY,
+                turn
+              )[1]
+            : minimax(
+                1,
+                newState,
+                true,
+                Number.NEGATIVE_INFINITY,
+                Number.POSITIVE_INFINITY,
+                turn
+              )[1]
+        );
         changeTurn();
       }
     }
@@ -191,6 +192,7 @@ const useHalma = (boardSize, depth, timer) => {
 
   const minimax = (curD, curS, isMax, alpha, beta, turn) => {
     let result = [];
+    console.log(curD, curS);
     // Base Case:
     // If depth limit reached or final state reached...
     // Calculate heuristic value

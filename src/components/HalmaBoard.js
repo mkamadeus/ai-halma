@@ -4,7 +4,7 @@ import useSelection from "../hooks/useSelection";
 import Pawn from "./Pawn";
 
 const HalmaBoard = (props) => {
-  const { size, timer } = props;
+  const { size, timer, playerBlue, playerOrange } = props;
   const [selected, setSelectedTile, setTargetTile] = useSelection();
   const {
     state,
@@ -14,7 +14,7 @@ const HalmaBoard = (props) => {
     movePawn,
     seconds,
     heuristicFunction,
-  } = useHalma(size, 3, timer);
+  } = useHalma(size, 3, timer, playerBlue, playerOrange);
 
   const calculateCellWidth = () => 100 / size;
 
