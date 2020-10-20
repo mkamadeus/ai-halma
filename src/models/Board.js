@@ -31,7 +31,7 @@ export default class Board {
     return this.boardSize;
   }
 
-  isFinalTile(r, c, owner) {
+  isStartingTile(r, c, owner) {
     if (owner === 1) {
       return r + c - Math.floor(this.boardSize / 2) + 1 <= 0;
     } else if (owner === 2) {

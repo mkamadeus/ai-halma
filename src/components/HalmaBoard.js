@@ -13,6 +13,7 @@ const HalmaBoard = (props) => {
     changeTurn,
     movePawn,
     seconds,
+    heuristicFunction,
   } = useHalma(size, 3, timer);
 
   const calculateCellWidth = () => 100 / size;
@@ -43,7 +44,11 @@ const HalmaBoard = (props) => {
         <span aria-label="star" aria-labelledby="star" role="img">
           ⏳
         </span>{" "}
-        {seconds}s
+        {seconds}s ·{" "}
+        <span aria-label="star" aria-labelledby="star" role="img">
+          🏆
+        </span>{" "}
+        {heuristicFunction(state, turn).toFixed(2)}
       </div>
       <div className="flex flex-row flex-wrap w-full m-2">
         {state.board.board.map((row, i) => {
@@ -75,10 +80,14 @@ const HalmaBoard = (props) => {
                             state.currentMove[1] === j))
                           ? "bg-yellow-300"
                           : ""
-                      } ${state.board.isFinalTile(i, j, 1) ? "bg-blue-200" : ""}
+                      } ${
+                        state.board.isStartingTile(i, j, 1) ? "bg-blue-200" : ""
+                      }
                       
                       ${
-                        state.board.isFinalTile(i, j, 2) ? "bg-orange-200" : ""
+                        state.board.isStartingTile(i, j, 2)
+                          ? "bg-orange-200"
+                          : ""
                       }`}
                       onClick={(_) => {
                         const pawn = getPawnInPosition(i, j);

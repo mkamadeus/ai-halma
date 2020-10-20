@@ -30,6 +30,7 @@ const useHalma = (boardSize, depth, timer) => {
     const newState = state.copyState();
     if (newState.pawnList1.length === 0) {
       newState.initialState();
+      setState(newState);
     }
     console.log("tetst", newState);
     if (turn === 1) {
@@ -82,8 +83,7 @@ const useHalma = (boardSize, depth, timer) => {
 
   const heuristicFunction = (curS, owner) => {
     let myDistance = 0.0;
-    let goal = [];
-    goal = curS.board.generateGoal(owner).slice();
+    let goal = curS.board.generateGoal(owner).slice();
     let pawn = null;
     let notInGoal = 0;
     if (owner === 2) {
@@ -334,6 +334,7 @@ const useHalma = (boardSize, depth, timer) => {
     getPawnInPosition,
     minimax,
     seconds,
+    heuristicFunction,
   };
 };
 
