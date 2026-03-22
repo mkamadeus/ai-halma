@@ -1,18 +1,19 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 
 export const usePlayerStopwatch = () => {
-  const [timer, setTimer] = useState(new Date().getTime());
   const [total, setTotal] = useState(0);
+  const timerRef = useRef(Date.now());
+  const totalRef = useRef(0);
 
-  const start = () => {
-    const currentTime = new Date();
-    setTimer(currentTime.getTime());
-  };
+  const start = useCallback(() => {
+    timerRef.current = Date.now();
+  }, []);
 
-  const pause = () => {
-    const currentTime = new Date();
-    setTotal(total + (currentTime.getTime() - timer));
-  };
+  const pause = useCallback(() => {
+    const elapsed = Date.now() - timerRef.current;
+    totalRef.current += elapsed;
+    setTotal(totalRef.current);
+  }, []);
 
   return [total, start, pause];
 };
