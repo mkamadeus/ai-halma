@@ -1,24 +1,50 @@
-import React from "react";
-import { useLocation } from "react-router";
+import React, { useState } from "react";
 import HalmaBoard from "./components/HalmaBoard";
+import SettingsDialog from "./components/SettingsDialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function App() {
-  const location = useLocation();
-  const { playerBlue, playerOrange, bSize, tLimit } = location.state;
+  const [gameConfig, setGameConfig] = useState(null);
+  const [gameKey, setGameKey] = useState(0);
+
+  const handleStart = (config) => {
+    setGameConfig(config);
+    setGameKey((k) => k + 1);
+  };
+
+  const handleNewGame = () => {
+    setGameConfig(null);
+  };
 
   return (
-    <div className="container mx-auto flex flex-col justify-center items-center">
-      <div
-        className="flex flex-col justify-center items-center w-full h-screen"
-        style={{ maxWidth: "800px" }}
-      >
-        <HalmaBoard
-          size={bSize}
-          timer={tLimit}
-          playerBlue={playerBlue}
-          playerOrange={playerOrange}
-        />
-      </div>
+    <div className="container mx-auto flex flex-col items-center px-4 py-8">
+      <SettingsDialog open={gameConfig === null} onStart={handleStart} />
+
+      {gameConfig && (
+        <div className="w-full flex flex-col items-center" style={{ maxWidth: "800px" }}>
+          <div className="w-full flex justify-end mb-4">
+            <Button variant="outline" onClick={handleNewGame}>
+              New Game
+            </Button>
+          </div>
+
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="text-center text-xl">Halma</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <HalmaBoard
+                key={gameKey}
+                size={gameConfig.boardSize}
+                timer={gameConfig.timeLimit}
+                playerBlue={gameConfig.playerBlue}
+                playerOrange={gameConfig.playerOrange}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

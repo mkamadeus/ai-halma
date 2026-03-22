@@ -31,9 +31,14 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
       pause();
       pause1();
       pause2();
+      const formatTime = (ms) => {
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+      };
       Swal.fire(
         `Player ${turn === 1 ? 2 : 1} wins!`,
-        `Player 1 Time : ${timer1}ms | Player 2 Time : ${timer2}ms`
+        `Player 1: ${formatTime(timer1)} | Player 2: ${formatTime(timer2)}`,
       );
     } else {
       if (newState.pawnList1.length === 0) {
@@ -56,7 +61,7 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
                 true,
                 Number.NEGATIVE_INFINITY,
                 Number.POSITIVE_INFINITY,
-                turn
+                turn,
               )[1]
             : minimax(
                 1,
@@ -64,8 +69,8 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
                 true,
                 Number.NEGATIVE_INFINITY,
                 Number.POSITIVE_INFINITY,
-                turn
-              )[1]
+                turn,
+              )[1],
         );
         changeTurn();
       }
@@ -142,12 +147,12 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
                   3 - owner
                 ) {
                   opDist.push(
-                    euclideanDistance(i, j, goalOp[k][0], goalOp[k][1])
+                    euclideanDistance(i, j, goalOp[k][0], goalOp[k][1]),
                   );
                 }
               } else {
                 opDist.push(
-                  euclideanDistance(i, j, goalOp[k][0], goalOp[k][1])
+                  euclideanDistance(i, j, goalOp[k][0], goalOp[k][1]),
                 );
               }
             }
@@ -173,7 +178,7 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
     for (let p = 0; p < selectedPawnList.length; p++) {
       let moveset = curS.generateMoveset(
         selectedPawnList[p].row,
-        selectedPawnList[p].col
+        selectedPawnList[p].col,
       );
       for (let i = 0; i < moveset.length; i++) {
         let s = curS.copyState();
@@ -181,7 +186,7 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
           selectedPawnList[p].row,
           selectedPawnList[p].col,
           moveset[i][0],
-          moveset[i][1]
+          moveset[i][1],
         );
         allMoveset.push(s);
       }
@@ -219,7 +224,7 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
         !isMax,
         alpha,
         beta,
-        turn
+        turn,
       );
       if (isMax && value < resMinimax[0]) {
         value = resMinimax[0];
@@ -305,7 +310,7 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
     let moveCurPawn = [];
     for (let i = 0; i < 10; i++) {
       moveCurPawn.push(
-        simulatedAnnealing(curS, isMax ? turn : turn === 2 ? 1 : 2)[1]
+        simulatedAnnealing(curS, isMax ? turn : turn === 2 ? 1 : 2)[1],
       );
     }
 
@@ -317,7 +322,7 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
         !isMax,
         alpha,
         beta,
-        turn
+        turn,
       );
 
       // If currently is finding MAX and the result is better than the current state...
