@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import useHalma from "../hooks/useHalma";
 import useSelection from "../hooks/useSelection";
-import Pawn from "./Pawn";
+import Tile from "./Tile";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,13 @@ const HalmaBoard = (props) => {
     winner,
   } = useHalma(size, 3, timer, playerBlue, playerOrange);
 
-  const calculateCellWidth = () => 100 / size;
+  const cellWidth = 100 / size;
+
+  const moveTargets = useMemo(() => {
+    if (!selected) return new Set();
+    const moves = state.generateMoveset(selected[0], selected[1]);
+    return new Set(moves.map(([r, c]) => `${r},${c}`));
+  }, [selected, state]);
 
   const getCellBackground = (i, j) => {
     if (selected && i === selected[0] && j === selected[1]) {
@@ -49,16 +55,17 @@ const HalmaBoard = (props) => {
     return "#e5e7eb";
   };
 
-  const getPawn = (r, c) => {
-    const pawn = getPawnInPosition(r, c);
-    if (pawn) {
-      return (
-        <Pawn
-          color={pawn.color}
-          isSelected={selected && r === selected[0] && c === selected[1]}
-          size={"60"}
-        />
-      );
+  const handleTileClick = (i, j) => {
+    const pawn = getPawnInPosition(i, j);
+    try {
+      if (pawn && pawn.owner === turn) {
+        setSelectedTile(i, j);
+      } else if (selected && !pawn) {
+        setTargetTile(i, j, movePawn);
+        changeTurn();
+      }
+    } catch (err) {
+      console.log(err.message);
     }
   };
 
@@ -83,63 +90,19 @@ const HalmaBoard = (props) => {
       </div>
 
       <div className="flex flex-row flex-wrap w-full">
-        {state.board.board.map((row, i) => {
-          return (
-            <React.Fragment key={`halma-row-${i}`}>
-              {row.map((_, j) => {
-                return (
-                  <div
-                    key={`halma-cell-${i}-${j}`}
-                    className="relative"
-                    style={{
-                      width: `${calculateCellWidth()}%`,
-                      paddingBottom: `${calculateCellWidth()}%`,
-                    }}
-                  >
-                    <div
-                      className="flex absolute top-0 left-0 right-0 bottom-0 m-auto justify-center items-center rounded hover:shadow-md transition duration-150 cursor-pointer"
-                      style={{
-                        width: "87%",
-                        height: "87%",
-                        backgroundColor: getCellBackground(i, j),
-                      }}
-                      onClick={(_) => {
-                        const pawn = getPawnInPosition(i, j);
-                        try {
-                          if (pawn && pawn.owner === turn) {
-                            setSelectedTile(i, j);
-                          } else if (selected && !pawn) {
-                            setTargetTile(i, j, movePawn);
-                            changeTurn();
-                          }
-                        } catch (err) {
-                          console.log(err.message);
-                        }
-                      }}
-                    >
-                      {getPawn(i, j)}
-                      {!!selected ? (
-                        state
-                          .generateMoveset(selected[0], selected[1])
-                          .filter((value) => value[0] === i && value[1] === j)
-                          .length !== 0 ? (
-                          <div
-                            className="bg-red-400 rounded-full absolute animate-ping"
-                            style={{ width: "30%", height: "30%" }}
-                          />
-                        ) : (
-                          ""
-                        )
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </React.Fragment>
-          );
-        })}
+        {state.board.board.map((row, i) =>
+          row.map((_, j) => (
+            <Tile
+              key={`tile-${i}-${j}`}
+              cellWidth={cellWidth}
+              backgroundColor={getCellBackground(i, j)}
+              pawn={getPawnInPosition(i, j)}
+              isSelected={!!selected && i === selected[0] && j === selected[1]}
+              isMoveTarget={moveTargets.has(`${i},${j}`)}
+              onClick={() => handleTileClick(i, j)}
+            />
+          )),
+        )}
       </div>
 
       <Dialog open={!!winner}>
