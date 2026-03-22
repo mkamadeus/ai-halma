@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import State from "../models/State";
-import Setting from "../Setting.js";
 
 const useBoard = (boardSize) => {
   const [state, setState] = useState(new State(boardSize));

@@ -6,8 +6,6 @@ function App() {
   const location = useLocation();
   const { playerBlue, playerOrange, bSize, tLimit } = location.state;
 
-  console.log(location.state);
-
   return (
     <div className="container mx-auto flex flex-col justify-center items-center">
       <div

@@ -1,16 +1,16 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Setting = () => {
   const [playerBlue, setPlayerBlue] = useState("human");
   const [playerOrange, setPlayerOrange] = useState("human");
   const [bSize, setBSize] = useState(6);
   const [tLimit, setTLimit] = useState(10);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    history.push("/play", { playerBlue, playerOrange, bSize, tLimit });
+    navigate("/play", { state: { playerBlue, playerOrange, bSize, tLimit } });
   };
 
   return (
