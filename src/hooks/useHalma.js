@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useStopwatch, useTimer } from "react-timer-hook";
 import State from "../models/State";
 import useBoard from "./useBoard";
 import Swal from "sweetalert2";
 import { usePlayerStopwatch } from "./usePlayerStopwatch";
 
+const MIN_AI_DELAY = 500; // ms — minimum visual delay for AI moves
+
 const useHalma = (boardSize, depth, timer, player1, player2) => {
   const { state, setState } = useBoard(boardSize);
   const [turn, setTurn] = useState(1);
+  const aiDelayRef = useRef(null);
   const newTimer = () => {
     const time = new Date();
     time.setSeconds(time.getSeconds() + timer);
@@ -53,8 +56,10 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
         (turn === 1 && player1 !== "human") ||
         (turn === 2 && player2 !== "human")
       ) {
-        setState(
-          player1 === "minimaxlocal"
+        const currentPlayer = turn === 1 ? player1 : player2;
+        const startMs = performance.now();
+        const result =
+          currentPlayer === "minimaxlocal"
             ? minimaxLocal(
                 1,
                 newState,
@@ -70,11 +75,28 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
                 Number.NEGATIVE_INFINITY,
                 Number.POSITIVE_INFINITY,
                 turn,
-              )[1],
-        );
-        changeTurn();
+              )[1];
+        const computeMs = performance.now() - startMs;
+
+        if (turn === 1) pause1();
+        else pause2();
+
+        const remaining = MIN_AI_DELAY - computeMs;
+        if (remaining > 0) {
+          aiDelayRef.current = setTimeout(() => {
+            setState(result);
+            changeTurn();
+          }, remaining);
+        } else {
+          setState(result);
+          changeTurn();
+        }
       }
     }
+
+    return () => {
+      if (aiDelayRef.current) clearTimeout(aiDelayRef.current);
+    };
   }, [turn]);
 
   // Change turn
