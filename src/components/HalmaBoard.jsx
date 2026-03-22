@@ -24,6 +24,7 @@ const HalmaBoard = (props) => {
     seconds,
     heuristicFunction,
     winner,
+    aiThinking,
   } = useHalma(size, 3, timer, playerBlue, playerOrange);
 
   const cellWidth = 100 / size;
@@ -56,6 +57,7 @@ const HalmaBoard = (props) => {
   };
 
   const handleTileClick = (i, j) => {
+    if (aiThinking) return;
     const pawn = getPawnInPosition(i, j);
     try {
       if (pawn && pawn.owner === turn) {
@@ -89,7 +91,33 @@ const HalmaBoard = (props) => {
         </div>
       </div>
 
-      <div className="flex flex-row flex-wrap w-full">
+      <div className="flex flex-row flex-wrap w-full relative">
+        {aiThinking && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/60 rounded">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <svg
+                className="animate-spin h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              Thinking…
+            </div>
+          </div>
+        )}
         {state.board.board.map((row, i) =>
           row.map((_, j) => (
             <Tile

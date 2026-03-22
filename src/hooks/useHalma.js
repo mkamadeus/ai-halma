@@ -16,7 +16,9 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
   const { state, setState } = useBoard(boardSize);
   const [turn, setTurn] = useState(1);
   const [winner, setWinner] = useState(null);
+  const [aiThinking, setAiThinking] = useState(false);
   const aiDelayRef = useRef(null);
+  const aiComputeRef = useRef(null);
   const newTimer = () => {
     const time = new Date();
     time.setSeconds(time.getSeconds() + timer);
@@ -58,45 +60,53 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
         (turn === 1 && player1 !== "human") ||
         (turn === 2 && player2 !== "human")
       ) {
-        const currentPlayer = turn === 1 ? player1 : player2;
-        const startMs = performance.now();
-        const result =
-          currentPlayer === "minimaxlocal"
-            ? minimaxLocal(
-                1,
-                newState,
-                true,
-                Number.NEGATIVE_INFINITY,
-                Number.POSITIVE_INFINITY,
-                turn,
-              )[1]
-            : minimax(
-                1,
-                newState,
-                true,
-                Number.NEGATIVE_INFINITY,
-                Number.POSITIVE_INFINITY,
-                turn,
-              )[1];
-        const computeMs = performance.now() - startMs;
+        setAiThinking(true);
 
-        if (turn === 1) pause1();
-        else pause2();
+        // Defer computation so React can paint the loading state first
+        aiComputeRef.current = setTimeout(() => {
+          const currentPlayer = turn === 1 ? player1 : player2;
+          const startMs = performance.now();
+          const result =
+            currentPlayer === "minimaxlocal"
+              ? minimaxLocal(
+                  1,
+                  newState,
+                  true,
+                  Number.NEGATIVE_INFINITY,
+                  Number.POSITIVE_INFINITY,
+                  turn,
+                )[1]
+              : minimax(
+                  1,
+                  newState,
+                  true,
+                  Number.NEGATIVE_INFINITY,
+                  Number.POSITIVE_INFINITY,
+                  turn,
+                )[1];
+          const computeMs = performance.now() - startMs;
 
-        const remaining = MIN_AI_DELAY - computeMs;
-        if (remaining > 0) {
-          aiDelayRef.current = setTimeout(() => {
+          if (turn === 1) pause1();
+          else pause2();
+
+          const applyMove = () => {
+            setAiThinking(false);
             setState(result);
             changeTurn();
-          }, remaining);
-        } else {
-          setState(result);
-          changeTurn();
-        }
+          };
+
+          const remaining = MIN_AI_DELAY - computeMs;
+          if (remaining > 0) {
+            aiDelayRef.current = setTimeout(applyMove, remaining);
+          } else {
+            applyMove();
+          }
+        }, 0);
       }
     }
 
     return () => {
+      if (aiComputeRef.current) clearTimeout(aiComputeRef.current);
       if (aiDelayRef.current) clearTimeout(aiDelayRef.current);
     };
   }, [turn]);
@@ -388,6 +398,7 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
     seconds,
     heuristicFunction,
     winner,
+    aiThinking,
   };
 };
 
