@@ -2,9 +2,18 @@ import React from "react";
 import useHalma from "../hooks/useHalma";
 import useSelection from "../hooks/useSelection";
 import Pawn from "./Pawn";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const HalmaBoard = (props) => {
-  const { size, timer, playerBlue, playerOrange } = props;
+  const { size, timer, playerBlue, playerOrange, onNewGame } = props;
   const [selected, setSelectedTile, setTargetTile] = useSelection();
   const {
     state,
@@ -14,6 +23,7 @@ const HalmaBoard = (props) => {
     movePawn,
     seconds,
     heuristicFunction,
+    winner,
   } = useHalma(size, 3, timer, playerBlue, playerOrange);
 
   const calculateCellWidth = () => 100 / size;
@@ -131,6 +141,23 @@ const HalmaBoard = (props) => {
           );
         })}
       </div>
+
+      <Dialog open={!!winner}>
+        <DialogContent
+          className="sm:max-w-md"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Player {winner?.player} wins!</DialogTitle>
+            <DialogDescription>
+              Player 1: {winner?.timer1} | Player 2: {winner?.timer2}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={onNewGame}>New Game</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

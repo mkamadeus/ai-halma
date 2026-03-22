@@ -1,15 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useStopwatch, useTimer } from "react-timer-hook";
+import { useEffect, useRef, useState } from "react";
+import { useTimer } from "react-timer-hook";
 import State from "../models/State";
 import useBoard from "./useBoard";
-import Swal from "sweetalert2";
 import { usePlayerStopwatch } from "./usePlayerStopwatch";
+
+const formatTime = (ms) => {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+};
 
 const MIN_AI_DELAY = 500; // ms — minimum visual delay for AI moves
 
 const useHalma = (boardSize, depth, timer, player1, player2) => {
   const { state, setState } = useBoard(boardSize);
   const [turn, setTurn] = useState(1);
+  const [winner, setWinner] = useState(null);
   const aiDelayRef = useRef(null);
   const newTimer = () => {
     const time = new Date();
@@ -34,15 +40,11 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
       pause();
       pause1();
       pause2();
-      const formatTime = (ms) => {
-        const s = Math.floor(ms / 1000);
-        const m = Math.floor(s / 60);
-        return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
-      };
-      Swal.fire(
-        `Player ${turn === 1 ? 2 : 1} wins!`,
-        `Player 1: ${formatTime(timer1)} | Player 2: ${formatTime(timer2)}`,
-      );
+      setWinner({
+        player: turn === 1 ? 2 : 1,
+        timer1: formatTime(timer1),
+        timer2: formatTime(timer2),
+      });
     } else {
       if (newState.pawnList1.length === 0) {
         start1();
@@ -385,6 +387,7 @@ const useHalma = (boardSize, depth, timer, player1, player2) => {
     minimax,
     seconds,
     heuristicFunction,
+    winner,
   };
 };
 

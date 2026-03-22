@@ -22,7 +22,10 @@ function App() {
       <SettingsDialog open={gameConfig === null} onStart={handleStart} />
 
       {gameConfig && (
-        <div className="w-full flex flex-col items-center" style={{ maxWidth: "800px" }}>
+        <div
+          className="w-full flex flex-col items-center"
+          style={{ maxWidth: "800px" }}
+        >
           <div className="w-full flex justify-end mb-4">
             <Button variant="outline" onClick={handleNewGame}>
               New Game
@@ -40,6 +43,7 @@ function App() {
                 timer={gameConfig.timeLimit}
                 playerBlue={gameConfig.playerBlue}
                 playerOrange={gameConfig.playerOrange}
+                onNewGame={handleNewGame}
               />
             </CardContent>
           </Card>
