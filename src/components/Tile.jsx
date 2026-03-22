@@ -32,7 +32,6 @@ const Tile = ({
               backgroundColor: pawn.color,
               width: "65%",
               height: "65%",
-              zIndex: 100,
             }}
           />
         )}

@@ -12,6 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
+const playerLabel = (type) => {
+  if (type === "minimax") return "AI – Minimax";
+  if (type === "minimaxlocal") return "AI – Local Search";
+  return "Human";
+};
+
 const HalmaBoard = (props) => {
   const { size, timer, playerBlue, playerOrange, onNewGame } = props;
   const [selected, setSelectedTile, setTargetTile] = useSelection();
@@ -71,19 +77,28 @@ const HalmaBoard = (props) => {
     }
   };
 
-  const turnColor = turn === 1 ? "#3b82f6" : "#f97316";
-
   return (
     <>
       <div className="flex items-center justify-between pb-3 gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span
-            className="inline-block w-3 h-3 rounded-full"
-            style={{ backgroundColor: turnColor }}
-          />
-          <span className="text-lg font-semibold text-foreground">
-            Player {turn}&apos;s Turn
-          </span>
+        <div className="flex items-center gap-4">
+          <div
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-sm font-medium ${turn === 1 ? "ring-2 ring-blue-400 bg-blue-50 text-blue-700" : "text-muted-foreground"}`}
+          >
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: "#3b82f6" }}
+            />
+            Blue – {playerLabel(playerBlue)}
+          </div>
+          <div
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-sm font-medium ${turn === 2 ? "ring-2 ring-orange-400 bg-orange-50 text-orange-700" : "text-muted-foreground"}`}
+          >
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: "#f97316" }}
+            />
+            Orange – {playerLabel(playerOrange)}
+          </div>
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span>{seconds}s remaining</span>
