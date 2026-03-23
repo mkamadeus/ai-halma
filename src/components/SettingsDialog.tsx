@@ -17,28 +17,82 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { PlayerType } from "../types";
+import type { PlayerConfig, DifficultyLevel } from "../types";
+import { DIFFICULTY_LABELS } from "../types";
 
 interface SettingsDialogProps {
   open: boolean;
   onStart: (config: {
-    playerBlue: PlayerType;
-    playerOrange: PlayerType;
+    playerBlue: PlayerConfig;
+    playerOrange: PlayerConfig;
     boardSize: number;
     timeLimit: number;
   }) => void;
 }
 
+type PlayerMode = "human" | "ai";
+
+const difficultyKeys = Object.keys(DIFFICULTY_LABELS) as DifficultyLevel[];
+
+const PlayerSelect: React.FC<{
+  id: string;
+  label: string;
+  mode: PlayerMode;
+  difficulty: DifficultyLevel;
+  onModeChange: (mode: PlayerMode) => void;
+  onDifficultyChange: (d: DifficultyLevel) => void;
+}> = ({ id, label, mode, difficulty, onModeChange, onDifficultyChange }) => (
+  <div className="grid gap-2">
+    <Label htmlFor={id}>{label}</Label>
+    <Select value={mode} onValueChange={(v) => onModeChange(v as PlayerMode)}>
+      <SelectTrigger id={id} className="w-full">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="human">Human</SelectItem>
+        <SelectItem value="ai">AI</SelectItem>
+      </SelectContent>
+    </Select>
+    {mode === "ai" && (
+      <Select
+        value={difficulty}
+        onValueChange={(v) => onDifficultyChange(v as DifficultyLevel)}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {difficultyKeys.map((key) => (
+            <SelectItem key={key} value={key}>
+              {DIFFICULTY_LABELS[key]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    )}
+  </div>
+);
+
 const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onStart }) => {
-  const [playerBlue, setPlayerBlue] = useState<PlayerType>("human");
-  const [playerOrange, setPlayerOrange] = useState<PlayerType>("human");
+  const [blueMode, setBlueMode] = useState<PlayerMode>("human");
+  const [blueDifficulty, setBlueDifficulty] =
+    useState<DifficultyLevel>("medium");
+  const [orangeMode, setOrangeMode] = useState<PlayerMode>("human");
+  const [orangeDifficulty, setOrangeDifficulty] =
+    useState<DifficultyLevel>("medium");
   const [boardSize, setBoardSize] = useState("8");
   const [timeLimit, setTimeLimit] = useState(10);
 
+  const toPlayerConfig = (
+    mode: PlayerMode,
+    difficulty: DifficultyLevel,
+  ): PlayerConfig =>
+    mode === "human" ? { type: "human" } : { type: "ai", difficulty };
+
   const handleSubmit = (): void => {
     onStart({
-      playerBlue,
-      playerOrange,
+      playerBlue: toPlayerConfig(blueMode, blueDifficulty),
+      playerOrange: toPlayerConfig(orangeMode, orangeDifficulty),
       boardSize: Number(boardSize),
       timeLimit,
     });
@@ -59,43 +113,23 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onStart }) => {
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
-            <Label htmlFor="playerBlue">Blue Player</Label>
-            <Select
-              value={playerBlue}
-              onValueChange={(v) => setPlayerBlue(v as PlayerType)}
-            >
-              <SelectTrigger id="playerBlue" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="human">Human</SelectItem>
-                <SelectItem value="minimax">AI - Minimax</SelectItem>
-                <SelectItem value="minimaxLocal">
-                  AI - Minimax + Local Search
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <PlayerSelect
+            id="playerBlue"
+            label="Blue Player"
+            mode={blueMode}
+            difficulty={blueDifficulty}
+            onModeChange={setBlueMode}
+            onDifficultyChange={setBlueDifficulty}
+          />
 
-          <div className="grid gap-2">
-            <Label htmlFor="playerOrange">Orange Player</Label>
-            <Select
-              value={playerOrange}
-              onValueChange={(v) => setPlayerOrange(v as PlayerType)}
-            >
-              <SelectTrigger id="playerOrange" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="human">Human</SelectItem>
-                <SelectItem value="minimax">AI - Minimax</SelectItem>
-                <SelectItem value="minimaxLocal">
-                  AI - Minimax + Local Search
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <PlayerSelect
+            id="playerOrange"
+            label="Orange Player"
+            mode={orangeMode}
+            difficulty={orangeDifficulty}
+            onModeChange={setOrangeMode}
+            onDifficultyChange={setOrangeDifficulty}
+          />
 
           <div className="grid gap-2">
             <Label htmlFor="boardSize">Board Size</Label>

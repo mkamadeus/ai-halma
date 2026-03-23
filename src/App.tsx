@@ -3,13 +3,13 @@ import HalmaBoard from "./components/HalmaBoard";
 import SettingsDialog from "./components/SettingsDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { PlayerType } from "./types";
+import type { PlayerConfig } from "./types";
 
 interface ActiveGameConfig {
   boardSize: number;
   timeLimit: number;
-  playerBlue: PlayerType;
-  playerOrange: PlayerType;
+  playerBlue: PlayerConfig;
+  playerOrange: PlayerConfig;
 }
 
 function App(): React.JSX.Element {

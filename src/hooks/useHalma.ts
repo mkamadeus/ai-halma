@@ -4,7 +4,8 @@ import State from "../models/State";
 import Pawn from "../models/Pawn";
 import useBoard from "./useBoard";
 import { usePlayerStopwatch } from "./usePlayerStopwatch";
-import type { PlayerOwner, PlayerType } from "../types";
+import type { PlayerOwner, PlayerConfig, DifficultyConfig } from "../types";
+import { DIFFICULTY_PRESETS } from "../types";
 
 export interface WinnerInfo {
   player: PlayerOwner;
@@ -32,13 +33,13 @@ const formatTime = (ms: number): string => {
 
 const MIN_AI_DELAY = 500;
 
-const euclideanDistance = (
+const euclideanDistanceSq = (
   r1: number,
   c1: number,
   r2: number,
   c2: number,
 ): number => {
-  return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(c2 - c1, 2));
+  return (r2 - r1) * (r2 - r1) + (c2 - c1) * (c2 - c1);
 };
 
 const heuristicFunction = (curS: State, owner: PlayerOwner): number => {
@@ -47,71 +48,52 @@ const heuristicFunction = (curS: State, owner: PlayerOwner): number => {
   const goalOp = curS.board.generateGoal(opponentOwner);
   let myDistance = 0.0;
   let opDistance = 0.0;
-  let value = 0.0;
-  for (let i = 0; i < curS.board.getBoardSize(); i++) {
-    for (let j = 0; j < curS.board.getBoardSize(); j++) {
-      const pawn = curS.getPawnInPosition(i, j);
-      if (pawn) {
-        if (pawn.owner === owner) {
-          const myDist: number[] = [];
-          for (let k = 0; k < goal.length; k++) {
-            const goalPos = goal[k]!;
-            const goalPawn = curS.getPawnInPosition(goalPos[0], goalPos[1]);
-            if (goalPawn) {
-              if (goalPawn.owner !== owner) {
-                myDist.push(euclideanDistance(i, j, goalPos[0], goalPos[1]));
-              }
-            } else {
-              myDist.push(euclideanDistance(i, j, goalPos[0], goalPos[1]));
-            }
-          }
-          if (myDist.length === 0) {
-            myDistance += 50;
-          } else {
-            myDistance -= myDist.reduce(function (a, b) {
-              return Math.max(a, b);
-            });
-          }
-        } else {
-          const opDist: number[] = [];
-          for (let k = 0; k < goalOp.length; k++) {
-            const goalOpPos = goalOp[k]!;
-            const goalOpPawn = curS.getPawnInPosition(
-              goalOpPos[0],
-              goalOpPos[1],
-            );
-            if (goalOpPawn) {
-              if (goalOpPawn.owner !== opponentOwner) {
-                opDist.push(
-                  euclideanDistance(i, j, goalOpPos[0], goalOpPos[1]),
-                );
-              }
-            } else {
-              opDist.push(euclideanDistance(i, j, goalOpPos[0], goalOpPos[1]));
-            }
-          }
-          if (opDist.length === 0) {
-            opDistance += 50;
-          } else {
-            opDistance -= opDist.reduce(function (a, b) {
-              return Math.max(a, b);
-            });
-          }
-        }
+
+  const processPawn = (pawn: Pawn, isOwner: boolean): void => {
+    const targetGoal = isOwner ? goal : goalOp;
+    const targetOwner = isOwner ? owner : opponentOwner;
+    const dists: number[] = [];
+    for (let k = 0; k < targetGoal.length; k++) {
+      const goalPos = targetGoal[k]!;
+      const goalPawn = curS.getPawnInPosition(goalPos[0], goalPos[1]);
+      if (!goalPawn || goalPawn.owner !== targetOwner) {
+        dists.push(
+          euclideanDistanceSq(pawn.row, pawn.col, goalPos[0], goalPos[1]),
+        );
       }
     }
+    if (dists.length === 0) {
+      if (isOwner) myDistance += 50;
+      else opDistance += 50;
+    } else {
+      const maxDist = dists.reduce((a, b) => Math.max(a, b));
+      if (isOwner) myDistance -= maxDist;
+      else opDistance -= maxDist;
+    }
+  };
+
+  for (let i = 0; i < curS.pawnList1.length; i++) {
+    const pawn = curS.pawnList1[i]!;
+    processPawn(pawn, pawn.owner === owner);
   }
-  value = myDistance - opDistance;
-  return value;
+  for (let i = 0; i < curS.pawnList2.length; i++) {
+    const pawn = curS.pawnList2[i]!;
+    processPawn(pawn, pawn.owner === owner);
+  }
+
+  return myDistance - opDistance;
 };
 
 const useHalma = (
   boardSize: number,
-  depth: number,
   timer: number,
-  player1: PlayerType,
-  player2: PlayerType,
+  player1: PlayerConfig,
+  player2: PlayerConfig,
 ): UseHalmaReturn => {
+  const p1Config: DifficultyConfig | null =
+    player1.type === "ai" ? DIFFICULTY_PRESETS[player1.difficulty] : null;
+  const p2Config: DifficultyConfig | null =
+    player2.type === "ai" ? DIFFICULTY_PRESETS[player2.difficulty] : null;
   const { state, setState } = useBoard(boardSize);
   const [turn, setTurn] = useState<PlayerOwner>(1);
   const [winner, setWinner] = useState<WinnerInfo | null>(null);
@@ -169,7 +151,7 @@ const useHalma = (
       for (let i = 0; i < moveset.length; i++) {
         const move = moveset[i]!;
         const s = curS.copyState();
-        s.movePawn(pawn.row, pawn.col, move[0], move[1]);
+        s.unsafeMovePawn(pawn.row, pawn.col, move[0], move[1]);
         allMoveset.push(s);
       }
     }
@@ -179,13 +161,14 @@ const useHalma = (
 
   const minimax = (
     curD: number,
+    maxDepth: number,
     curS: State,
     isMax: boolean,
     alpha: number,
     beta: number,
     turn: PlayerOwner,
   ): [number, State] => {
-    if (curD === depth || curS.isFinalState()) {
+    if (curD === maxDepth || curS.isFinalState()) {
       return [heuristicFunction(curS, turn), curS];
     }
 
@@ -203,6 +186,7 @@ const useHalma = (
     for (let i = 0; i < moveCurPawn.length; i++) {
       const resMinimax = minimax(
         curD + 1,
+        maxDepth,
         moveCurPawn[i]!,
         !isMax,
         alpha,
@@ -233,8 +217,9 @@ const useHalma = (
   const simulatedAnnealing = (
     curS: State,
     owner: PlayerOwner,
+    precomputedMoves?: State[],
   ): [number, State] => {
-    const moveCurPawn = generateAllMoveSet(curS, owner);
+    const moveCurPawn = precomputedMoves ?? generateAllMoveSet(curS, owner);
     let max: number | null = null;
     let s: State | null = null;
 
@@ -270,13 +255,15 @@ const useHalma = (
 
   const minimaxLocal = (
     curD: number,
+    maxDepth: number,
+    saCandidates: number,
     curS: State,
     isMax: boolean,
     alpha: number,
     beta: number,
     turn: PlayerOwner,
   ): [number, State] => {
-    if (curD === depth || curS.isFinalState()) {
+    if (curD === maxDepth || curS.isFinalState()) {
       return [heuristicFunction(curS, turn), curS];
     }
 
@@ -286,15 +273,17 @@ const useHalma = (
     let bestMove: State | null = null;
 
     const moveCurPawn: State[] = [];
-    for (let i = 0; i < 10; i++) {
-      moveCurPawn.push(
-        simulatedAnnealing(curS, isMax ? turn : turn === 2 ? 1 : 2)[1],
-      );
+    const saOwner = isMax ? turn : turn === 2 ? 1 : 2;
+    const precomputedMoves = generateAllMoveSet(curS, saOwner);
+    for (let i = 0; i < saCandidates; i++) {
+      moveCurPawn.push(simulatedAnnealing(curS, saOwner, precomputedMoves)[1]);
     }
 
     for (let i = 0; i < moveCurPawn.length; i++) {
       const resMinimax = minimaxLocal(
         curD + 1,
+        maxDepth,
+        saCandidates,
         moveCurPawn[i]!,
         !isMax,
         alpha,
@@ -344,32 +333,70 @@ const useHalma = (
       }
 
       if (
-        (turn === 1 && player1 !== "human") ||
-        (turn === 2 && player2 !== "human")
+        (turn === 1 && player1.type === "ai") ||
+        (turn === 2 && player2.type === "ai")
       ) {
         setAiThinking(true);
 
         aiComputeRef.current = setTimeout(() => {
-          const currentPlayer = turn === 1 ? player1 : player2;
+          const config = (turn === 1 ? p1Config : p2Config)!;
           const startMs = performance.now();
-          const result =
-            currentPlayer === "minimaxLocal"
-              ? minimaxLocal(
-                  1,
-                  newState,
-                  true,
-                  Number.NEGATIVE_INFINITY,
-                  Number.POSITIVE_INFINITY,
-                  turn,
-                )[1]
-              : minimax(
-                  1,
-                  newState,
-                  true,
-                  Number.NEGATIVE_INFINITY,
-                  Number.POSITIVE_INFINITY,
-                  turn,
-                )[1];
+
+          let result: State;
+          if (config.noiseTopK <= 1) {
+            result =
+              config.algorithm === "minimaxLocal"
+                ? minimaxLocal(
+                    1,
+                    config.depth,
+                    config.saCandidates,
+                    newState,
+                    true,
+                    Number.NEGATIVE_INFINITY,
+                    Number.POSITIVE_INFINITY,
+                    turn,
+                  )[1]
+                : minimax(
+                    1,
+                    config.depth,
+                    newState,
+                    true,
+                    Number.NEGATIVE_INFINITY,
+                    Number.POSITIVE_INFINITY,
+                    turn,
+                  )[1];
+          } else {
+            const rootMoves = generateAllMoveSet(newState, turn);
+            const scored: Array<[number, State]> = [];
+            for (let i = 0; i < rootMoves.length; i++) {
+              const move = rootMoves[i]!;
+              const score =
+                config.algorithm === "minimaxLocal"
+                  ? minimaxLocal(
+                      2,
+                      config.depth,
+                      config.saCandidates,
+                      move,
+                      false,
+                      Number.NEGATIVE_INFINITY,
+                      Number.POSITIVE_INFINITY,
+                      turn,
+                    )[0]
+                  : minimax(
+                      2,
+                      config.depth,
+                      move,
+                      false,
+                      Number.NEGATIVE_INFINITY,
+                      Number.POSITIVE_INFINITY,
+                      turn,
+                    )[0];
+              scored.push([score, move]);
+            }
+            scored.sort((a, b) => b[0] - a[0]);
+            const k = Math.min(config.noiseTopK, scored.length);
+            result = scored[Math.floor(Math.random() * k)]![1];
+          }
           const computeMs = performance.now() - startMs;
 
           if (turn === 1) pause1();

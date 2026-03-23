@@ -10,6 +10,7 @@ export default class State {
   pawnList2: Pawn[];
   prevPosition: Position | null;
   currentMove: Position | null;
+  private pawnMap: Map<string, Pawn> = new Map();
 
   constructor(boardSize: number) {
     this.board = new Board(boardSize);
@@ -19,16 +20,24 @@ export default class State {
     this.currentMove = null;
   }
 
+  private static posKey(r: number, c: number): string {
+    return `${r},${c}`;
+  }
+
   copyState(): State {
     const copiedState = new State(this.board.getBoardSize());
     for (let i = 0; i < this.pawnList1.length; i++) {
       const pawn1 = this.pawnList1[i]!;
-      copiedState.pawnList1.push(pawn1.copyPawn());
+      const cp1 = pawn1.copyPawn();
+      copiedState.pawnList1.push(cp1);
       copiedState.board.setBoard(pawn1.row, pawn1.col, 1);
+      copiedState.pawnMap.set(State.posKey(pawn1.row, pawn1.col), cp1);
 
       const pawn2 = this.pawnList2[i]!;
-      copiedState.pawnList2.push(pawn2.copyPawn());
+      const cp2 = pawn2.copyPawn();
+      copiedState.pawnList2.push(cp2);
       copiedState.board.setBoard(pawn2.row, pawn2.col, 2);
+      copiedState.pawnMap.set(State.posKey(pawn2.row, pawn2.col), cp2);
     }
     return copiedState;
   }
@@ -38,21 +47,16 @@ export default class State {
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n - i; j++) {
         this.board.setBoard(i, j, 1);
-        this.pawnList1.push(new Pawn("#00a2ff", 1, i, j));
+        const p1 = new Pawn("#00a2ff", 1, i, j);
+        this.pawnList1.push(p1);
+        this.pawnMap.set(State.posKey(i, j), p1);
 
-        this.board.setBoard(
-          this.board.getBoardSize() - i - 1,
-          this.board.getBoardSize() - j - 1,
-          2,
-        );
-        this.pawnList2.push(
-          new Pawn(
-            "#ff9a00",
-            2,
-            this.board.getBoardSize() - i - 1,
-            this.board.getBoardSize() - j - 1,
-          ),
-        );
+        const r2 = this.board.getBoardSize() - i - 1;
+        const c2 = this.board.getBoardSize() - j - 1;
+        this.board.setBoard(r2, c2, 2);
+        const p2 = new Pawn("#ff9a00", 2, r2, c2);
+        this.pawnList2.push(p2);
+        this.pawnMap.set(State.posKey(r2, c2), p2);
       }
     }
   }
@@ -105,11 +109,16 @@ export default class State {
       ];
       const pawn = this.getPawnInPosition(r, c)!;
       const opponentOwner = (3 - pawn.owner) as PlayerOwner;
+      const inOpponentZone = this.board.isStartingTile(
+        pawn.row,
+        pawn.col,
+        opponentOwner,
+      );
 
       for (let i = 0; i < possibleMoves.length; i++) {
         const move = possibleMoves[i]!;
         const curMove: Position = [r + move[0], c + move[1]];
-        if (this.board.isStartingTile(pawn.row, pawn.col, opponentOwner)) {
+        if (inOpponentZone) {
           if (
             this.board.isPositionValid(curMove[0], curMove[1]) &&
             !visited[curMove[0]]![curMove[1]] &&
@@ -146,7 +155,7 @@ export default class State {
             curPos[0] + 2 * move[0],
             curPos[1] + 2 * move[1],
           ];
-          if (this.board.isStartingTile(pawn.row, pawn.col, opponentOwner)) {
+          if (inOpponentZone) {
             if (
               this.board.isPositionValid(curMove[0], curMove[1]) &&
               this.board.getBoard(curMove[0], curMove[1]) &&
@@ -197,33 +206,23 @@ export default class State {
   }
 
   getPawnInPosition(r: number, c: number): Pawn | null {
-    let pawn: Pawn | null = null;
-    for (let i = 0; i < this.pawnList1.length; i++) {
-      if (
-        this.pawnList1[i]!.getRow() === r &&
-        this.pawnList1[i]!.getCol() === c
-      ) {
-        pawn = this.pawnList1[i]!;
-        break;
-      }
-      if (
-        this.pawnList2[i]!.getRow() === r &&
-        this.pawnList2[i]!.getCol() === c
-      ) {
-        pawn = this.pawnList2[i]!;
-        break;
-      }
-    }
-    return pawn;
+    return this.pawnMap.get(State.posKey(r, c)) ?? null;
   }
 
   movePawn(r1: number, c1: number, r2: number, c2: number): void {
     if (!this.isMoveValid(r1, c1, r2, c2)) {
       throw new Error("Invalid move");
     }
-    const pawn = this.getPawnInPosition(r1, c1)!;
+    this.unsafeMovePawn(r1, c1, r2, c2);
+  }
+
+  unsafeMovePawn(r1: number, c1: number, r2: number, c2: number): void {
+    const key1 = State.posKey(r1, c1);
+    const pawn = this.pawnMap.get(key1)!;
+    this.pawnMap.delete(key1);
     pawn.row = r2;
     pawn.col = c2;
+    this.pawnMap.set(State.posKey(r2, c2), pawn);
     this.board.setBoard(r2, c2, pawn.owner);
     this.board.setBoard(r1, c1, 0);
     this.prevPosition = [r1, c1];

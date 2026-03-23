@@ -7,6 +7,7 @@ export type BoardCell = 0 | PlayerOwner;
 export default class Board {
   boardSize: number;
   board: BoardCell[][];
+  private goalCache: Map<PlayerOwner, Position[]> = new Map();
 
   constructor(boardSize: number) {
     this.boardSize = boardSize;
@@ -45,6 +46,9 @@ export default class Board {
   }
 
   generateGoal(owner: PlayerOwner): Position[] {
+    const cached = this.goalCache.get(owner);
+    if (cached) return cached;
+
     const boardSize = this.getBoardSize() / 2;
     const goal: Position[] = [];
     for (let i = 0; i < boardSize; i++) {
@@ -58,6 +62,7 @@ export default class Board {
         goal.push(pos);
       }
     }
+    this.goalCache.set(owner, goal);
     return goal;
   }
 }

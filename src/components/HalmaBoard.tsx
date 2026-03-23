@@ -12,18 +12,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { PlayerOwner, PlayerType } from "../types";
+import type { PlayerOwner, PlayerConfig } from "../types";
+import { DIFFICULTY_LABELS } from "../types";
 
-const playerLabel = (type: PlayerType): string => {
-  if (type === "minimax") return "AI – Minimax";
-  if (type === "minimaxLocal") return "AI – Local Search";
-  return "Human";
+const playerLabel = (config: PlayerConfig): string => {
+  if (config.type === "human") return "Human";
+  return `AI – ${DIFFICULTY_LABELS[config.difficulty]}`;
 };
 
 interface GameStatusProps {
   turn: PlayerOwner;
-  playerBlue: PlayerType;
-  playerOrange: PlayerType;
+  playerBlue: PlayerConfig;
+  playerOrange: PlayerConfig;
   seconds: number;
   score: number;
 }
@@ -111,8 +111,8 @@ const WinDialog = React.memo<WinDialogProps>(({ winner, onNewGame }) => (
 interface HalmaBoardProps {
   size: number;
   timer: number;
-  playerBlue: PlayerType;
-  playerOrange: PlayerType;
+  playerBlue: PlayerConfig;
+  playerOrange: PlayerConfig;
   onNewGame: () => void;
 }
 
@@ -129,7 +129,7 @@ const HalmaBoard: React.FC<HalmaBoardProps> = (props) => {
     score,
     winner,
     aiThinking,
-  } = useHalma(size, 3, timer, playerBlue, playerOrange);
+  } = useHalma(size, timer, playerBlue, playerOrange);
 
   const cellWidth = 100 / size;
 
