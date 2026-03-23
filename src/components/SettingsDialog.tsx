@@ -17,14 +17,25 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import type { PlayerType } from "../types";
 
-const SettingsDialog = ({ open, onStart }) => {
-  const [playerBlue, setPlayerBlue] = useState("human");
-  const [playerOrange, setPlayerOrange] = useState("human");
+interface SettingsDialogProps {
+  open: boolean;
+  onStart: (config: {
+    playerBlue: PlayerType;
+    playerOrange: PlayerType;
+    boardSize: number;
+    timeLimit: number;
+  }) => void;
+}
+
+const SettingsDialog: React.FC<SettingsDialogProps> = ({ open, onStart }) => {
+  const [playerBlue, setPlayerBlue] = useState<PlayerType>("human");
+  const [playerOrange, setPlayerOrange] = useState<PlayerType>("human");
   const [boardSize, setBoardSize] = useState("8");
   const [timeLimit, setTimeLimit] = useState(10);
 
-  const handleSubmit = () => {
+  const handleSubmit = (): void => {
     onStart({
       playerBlue,
       playerOrange,
@@ -50,14 +61,17 @@ const SettingsDialog = ({ open, onStart }) => {
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
             <Label htmlFor="playerBlue">Blue Player</Label>
-            <Select value={playerBlue} onValueChange={setPlayerBlue}>
+            <Select
+              value={playerBlue}
+              onValueChange={(v) => setPlayerBlue(v as PlayerType)}
+            >
               <SelectTrigger id="playerBlue" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="human">Human</SelectItem>
                 <SelectItem value="minimax">AI - Minimax</SelectItem>
-                <SelectItem value="minimaxlocal">
+                <SelectItem value="minimaxLocal">
                   AI - Minimax + Local Search
                 </SelectItem>
               </SelectContent>
@@ -66,14 +80,17 @@ const SettingsDialog = ({ open, onStart }) => {
 
           <div className="grid gap-2">
             <Label htmlFor="playerOrange">Orange Player</Label>
-            <Select value={playerOrange} onValueChange={setPlayerOrange}>
+            <Select
+              value={playerOrange}
+              onValueChange={(v) => setPlayerOrange(v as PlayerType)}
+            >
               <SelectTrigger id="playerOrange" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="human">Human</SelectItem>
                 <SelectItem value="minimax">AI - Minimax</SelectItem>
-                <SelectItem value="minimaxlocal">
+                <SelectItem value="minimaxLocal">
                   AI - Minimax + Local Search
                 </SelectItem>
               </SelectContent>

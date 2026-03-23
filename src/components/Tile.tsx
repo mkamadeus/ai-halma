@@ -1,6 +1,18 @@
 import React from "react";
+import type Pawn from "../models/Pawn";
 
-const Tile = React.memo(
+interface TileProps {
+  row: number;
+  col: number;
+  cellWidth: number;
+  backgroundColor: string;
+  pawn: Pawn | null;
+  isSelected: boolean;
+  isMoveTarget: boolean;
+  onClick: (row: number, col: number) => void;
+}
+
+const Tile = React.memo<TileProps>(
   ({
     row,
     col,

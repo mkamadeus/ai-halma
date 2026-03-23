@@ -3,17 +3,25 @@ import HalmaBoard from "./components/HalmaBoard";
 import SettingsDialog from "./components/SettingsDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { PlayerType } from "./types";
 
-function App() {
-  const [gameConfig, setGameConfig] = useState(null);
+interface ActiveGameConfig {
+  boardSize: number;
+  timeLimit: number;
+  playerBlue: PlayerType;
+  playerOrange: PlayerType;
+}
+
+function App(): React.JSX.Element {
+  const [gameConfig, setGameConfig] = useState<ActiveGameConfig | null>(null);
   const [gameKey, setGameKey] = useState(0);
 
-  const handleStart = (config) => {
+  const handleStart = (config: ActiveGameConfig): void => {
     setGameConfig(config);
     setGameKey((k) => k + 1);
   };
 
-  const handleNewGame = () => {
+  const handleNewGame = (): void => {
     setGameConfig(null);
   };
 

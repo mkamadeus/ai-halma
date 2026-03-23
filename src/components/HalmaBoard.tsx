@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import useHalma from "../hooks/useHalma";
+import type { WinnerInfo } from "../hooks/useHalma";
 import useSelection from "../hooks/useSelection";
 import Tile from "./Tile";
 import {
@@ -11,14 +12,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import type { PlayerOwner, PlayerType } from "../types";
 
-const playerLabel = (type) => {
+const playerLabel = (type: PlayerType): string => {
   if (type === "minimax") return "AI – Minimax";
-  if (type === "minimaxlocal") return "AI – Local Search";
+  if (type === "minimaxLocal") return "AI – Local Search";
   return "Human";
 };
 
-const GameStatus = React.memo(
+interface GameStatusProps {
+  turn: PlayerOwner;
+  playerBlue: PlayerType;
+  playerOrange: PlayerType;
+  seconds: number;
+  score: number;
+}
+
+const GameStatus = React.memo<GameStatusProps>(
   ({ turn, playerBlue, playerOrange, seconds, score }) => {
     return (
       <div className="flex items-center justify-between pb-3 gap-4 flex-wrap">
@@ -74,7 +84,12 @@ const ThinkingOverlay = React.memo(() => (
   </div>
 ));
 
-const WinDialog = React.memo(({ winner, onNewGame }) => (
+interface WinDialogProps {
+  winner: WinnerInfo | null;
+  onNewGame: () => void;
+}
+
+const WinDialog = React.memo<WinDialogProps>(({ winner, onNewGame }) => (
   <Dialog open={!!winner}>
     <DialogContent
       className="sm:max-w-md"
@@ -93,7 +108,15 @@ const WinDialog = React.memo(({ winner, onNewGame }) => (
   </Dialog>
 ));
 
-const HalmaBoard = (props) => {
+interface HalmaBoardProps {
+  size: number;
+  timer: number;
+  playerBlue: PlayerType;
+  playerOrange: PlayerType;
+  onNewGame: () => void;
+}
+
+const HalmaBoard: React.FC<HalmaBoardProps> = (props) => {
   const { size, timer, playerBlue, playerOrange, onNewGame } = props;
   const [selected, setSelectedTile, setTargetTile] = useSelection();
   const {
@@ -111,13 +134,14 @@ const HalmaBoard = (props) => {
   const cellWidth = 100 / size;
 
   const moveTargets = useMemo(() => {
-    if (!selected) return new Set();
+    if (!selected) return new Set<string>();
     const moves = state.generateMoveset(selected[0], selected[1]);
+    if (!moves) return new Set<string>();
     return new Set(moves.map(([r, c]) => `${r},${c}`));
   }, [selected, state]);
 
   const handleTileClick = useCallback(
-    (i, j) => {
+    (i: number, j: number) => {
       if (aiThinking) return;
       const pawn = getPawnInPosition(i, j);
       try {
@@ -128,7 +152,7 @@ const HalmaBoard = (props) => {
           changeTurn();
         }
       } catch (err) {
-        console.log(err.message);
+        console.log((err as Error).message);
       }
     },
     [
@@ -146,7 +170,7 @@ const HalmaBoard = (props) => {
   const tileGrid = useMemo(() => {
     return state.board.board.map((row, i) =>
       row.map((_, j) => {
-        let bg;
+        let bg: string;
         if (selected && i === selected[0] && j === selected[1]) {
           bg = "#9ca3af";
         } else if (
