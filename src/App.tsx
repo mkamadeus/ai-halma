@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import HalmaBoard from "./components/HalmaBoard";
 import SettingsDialog from "./components/SettingsDialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PlayerConfig } from "./types";
 
 interface ActiveGameConfig {
@@ -26,35 +25,31 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <div className="container mx-auto flex flex-col items-center px-4 py-8">
+    <div className="h-dvh overflow-y-auto flex flex-col items-center px-3 sm:px-4 py-3 sm:py-6">
       <SettingsDialog open={gameConfig === null} onStart={handleStart} />
 
       {gameConfig && (
         <div
-          className="w-full flex flex-col items-center"
+          className="w-full h-full min-h-0 flex flex-col gap-2 sm:gap-4"
           style={{ maxWidth: "800px" }}
         >
-          <div className="w-full flex justify-end mb-4">
-            <Button variant="outline" onClick={handleNewGame}>
+          <div className="flex items-center justify-between shrink-0">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight">
+              Halma
+            </h1>
+            <Button variant="outline" size="sm" onClick={handleNewGame}>
               New Game
             </Button>
           </div>
 
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle className="text-center text-xl">Halma</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <HalmaBoard
-                key={gameKey}
-                size={gameConfig.boardSize}
-                timer={gameConfig.timeLimit}
-                playerBlue={gameConfig.playerBlue}
-                playerOrange={gameConfig.playerOrange}
-                onNewGame={handleNewGame}
-              />
-            </CardContent>
-          </Card>
+          <HalmaBoard
+            key={gameKey}
+            size={gameConfig.boardSize}
+            timer={gameConfig.timeLimit}
+            playerBlue={gameConfig.playerBlue}
+            playerOrange={gameConfig.playerOrange}
+            onNewGame={handleNewGame}
+          />
         </div>
       )}
     </div>
