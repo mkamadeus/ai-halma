@@ -3,6 +3,7 @@ import useHalma from "../hooks/useHalma";
 import type { WinnerInfo } from "../hooks/useHalma";
 import useSelection from "../hooks/useSelection";
 import Tile from "./Tile";
+import type { TileVariant } from "./Tile";
 import {
   Dialog,
   DialogContent,
@@ -170,22 +171,20 @@ const HalmaBoard: React.FC<HalmaBoardProps> = (props) => {
   const tileGrid = useMemo(() => {
     return state.board.board.map((row, i) =>
       row.map((_, j) => {
-        let bg: string;
+        let variant: TileVariant = "default";
         if (selected && i === selected[0] && j === selected[1]) {
-          bg = "#9ca3af";
+          variant = "selected";
         } else if (
           !!state.prevPosition &&
           !!state.currentMove &&
           ((state.prevPosition[0] === i && state.prevPosition[1] === j) ||
             (state.currentMove[0] === i && state.currentMove[1] === j))
         ) {
-          bg = "#fde047";
+          variant = "lastMove";
         } else if (state.board.isStartingTile(i, j, 1)) {
-          bg = "#bfdbfe";
+          variant = "blueZone";
         } else if (state.board.isStartingTile(i, j, 2)) {
-          bg = "#fed7aa";
-        } else {
-          bg = "#e5e7eb";
+          variant = "orangeZone";
         }
 
         const pawn = state.getPawnInPosition(i, j);
@@ -196,16 +195,17 @@ const HalmaBoard: React.FC<HalmaBoardProps> = (props) => {
             row={i}
             col={j}
             cellWidth={cellWidth}
-            backgroundColor={bg}
+            variant={variant}
             pawn={pawn}
             isSelected={!!selected && i === selected[0] && j === selected[1]}
             isMoveTarget={moveTargets.has(`${i},${j}`)}
+            disabled={aiThinking}
             onClick={handleTileClick}
           />
         );
       }),
     );
-  }, [state, selected, moveTargets, cellWidth, handleTileClick]);
+  }, [state, selected, moveTargets, cellWidth, handleTileClick, aiThinking]);
 
   return (
     <>
