@@ -4,7 +4,12 @@ import State from "../models/State";
 import Pawn from "../models/Pawn";
 import useBoard from "./useBoard";
 import { usePlayerStopwatch } from "./usePlayerStopwatch";
-import type { PlayerOwner, PlayerConfig, DifficultyConfig } from "../types";
+import type {
+  PlayerOwner,
+  PlayerConfig,
+  DifficultyConfig,
+  Position,
+} from "../types";
 import { DIFFICULTY_PRESETS } from "../types";
 
 export interface WinnerInfo {
@@ -33,55 +38,122 @@ const formatTime = (ms: number): string => {
 
 const MIN_AI_DELAY = 500;
 
-const euclideanDistanceSq = (
+const manhattanDistance = (
   r1: number,
   c1: number,
   r2: number,
   c2: number,
-): number => {
-  return (r2 - r1) * (r2 - r1) + (c2 - c1) * (c2 - c1);
-};
+): number => Math.abs(r2 - r1) + Math.abs(c2 - c1);
 
+// Weights for heuristic components
+const STRAGGLER_WEIGHT = 3.0;
+const START_ZONE_PENALTY = 8.0;
+
+/**
+ * Evaluate a board state for `owner`.
+ *
+ * Components:
+ *  1. Greedy pawn→goal assignment (Manhattan distance, farthest-first)
+ *  2. Straggler penalty: weight × (maxDist − meanDist)
+ *  3. Start-zone penalty: flat cost per pawn still in own starting zone
+ *
+ * Returns myScore − opponentScore (positive = good for owner).
+ */
 const heuristicFunction = (curS: State, owner: PlayerOwner): number => {
-  const goal = curS.board.generateGoal(owner);
   const opponentOwner = (3 - owner) as PlayerOwner;
-  const goalOp = curS.board.generateGoal(opponentOwner);
-  let myDistance = 0.0;
-  let opDistance = 0.0;
 
-  const processPawn = (pawn: Pawn, isOwner: boolean): void => {
-    const targetGoal = isOwner ? goal : goalOp;
-    const targetOwner = isOwner ? owner : opponentOwner;
-    const dists: number[] = [];
-    for (let k = 0; k < targetGoal.length; k++) {
-      const goalPos = targetGoal[k]!;
-      const goalPawn = curS.getPawnInPosition(goalPos[0], goalPos[1]);
-      if (!goalPawn || goalPawn.owner !== targetOwner) {
-        dists.push(
-          euclideanDistanceSq(pawn.row, pawn.col, goalPos[0], goalPos[1]),
-        );
+  const evaluateSide = (pawns: Pawn[], sideOwner: PlayerOwner): number => {
+    const goalTiles = curS.board.generateGoal(sideOwner);
+
+    const occupiedGoalSet = new Set<string>();
+    const availableGoals: Position[] = [];
+    for (let i = 0; i < goalTiles.length; i++) {
+      const g = goalTiles[i]!;
+      const occupant = curS.getPawnInPosition(g[0], g[1]);
+      if (occupant && occupant.owner === sideOwner) {
+        occupiedGoalSet.add(`${g[0]},${g[1]}`);
+      } else {
+        availableGoals.push(g);
       }
     }
-    if (dists.length === 0) {
-      if (isOwner) myDistance += 50;
-      else opDistance += 50;
-    } else {
-      const maxDist = dists.reduce((a, b) => Math.max(a, b));
-      if (isOwner) myDistance -= maxDist;
-      else opDistance -= maxDist;
+
+    const unassignedPawns: Pawn[] = [];
+    for (let i = 0; i < pawns.length; i++) {
+      const p = pawns[i]!;
+      if (p.owner !== sideOwner) continue;
+      if (occupiedGoalSet.has(`${p.row},${p.col}`)) continue;
+      unassignedPawns.push(p);
     }
+
+    let goalCenterR = 0;
+    let goalCenterC = 0;
+    for (let i = 0; i < goalTiles.length; i++) {
+      goalCenterR += goalTiles[i]![0];
+      goalCenterC += goalTiles[i]![1];
+    }
+    goalCenterR /= goalTiles.length;
+    goalCenterC /= goalTiles.length;
+
+    // Greedy assignment: sort pawns farthest-first so stragglers get first pick
+    const sortedPawns = unassignedPawns.slice().sort((a, b) => {
+      const distA = manhattanDistance(a.row, a.col, goalCenterR, goalCenterC);
+      const distB = manhattanDistance(b.row, b.col, goalCenterR, goalCenterC);
+      return distB - distA;
+    });
+
+    const usedGoals = new Set<number>();
+    const assignedDists: number[] = [];
+
+    for (let i = 0; i < sortedPawns.length; i++) {
+      const p = sortedPawns[i]!;
+      let bestDist = Infinity;
+      let bestIdx = -1;
+      for (let j = 0; j < availableGoals.length; j++) {
+        if (usedGoals.has(j)) continue;
+        const d = manhattanDistance(
+          p.row,
+          p.col,
+          availableGoals[j]![0],
+          availableGoals[j]![1],
+        );
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = j;
+        }
+      }
+      if (bestIdx >= 0) {
+        usedGoals.add(bestIdx);
+        assignedDists.push(bestDist);
+      }
+    }
+
+    const totalDist = assignedDists.reduce((a, b) => a + b, 0);
+
+    // Straggler penalty: weight × (maxDist − meanDist)
+    let stragglerPenalty = 0;
+    if (assignedDists.length > 0) {
+      const mean = totalDist / assignedDists.length;
+      const maxDist = assignedDists.reduce((a, b) => Math.max(a, b), 0);
+      stragglerPenalty = STRAGGLER_WEIGHT * (maxDist - mean);
+    }
+
+    // Start-zone penalty: flat cost per pawn still in own starting zone
+    let startPenalty = 0;
+    for (let i = 0; i < pawns.length; i++) {
+      const p = pawns[i]!;
+      if (p.owner !== sideOwner) continue;
+      if (curS.board.isStartingTile(p.row, p.col, sideOwner)) {
+        startPenalty += START_ZONE_PENALTY;
+      }
+    }
+
+    return -totalDist - stragglerPenalty - startPenalty;
   };
 
-  for (let i = 0; i < curS.pawnList1.length; i++) {
-    const pawn = curS.pawnList1[i]!;
-    processPawn(pawn, pawn.owner === owner);
-  }
-  for (let i = 0; i < curS.pawnList2.length; i++) {
-    const pawn = curS.pawnList2[i]!;
-    processPawn(pawn, pawn.owner === owner);
-  }
+  const myPawns = owner === 1 ? curS.pawnList1 : curS.pawnList2;
+  const opPawns = owner === 1 ? curS.pawnList2 : curS.pawnList1;
 
-  return myDistance - opDistance;
+  return evaluateSide(myPawns, owner) - evaluateSide(opPawns, opponentOwner);
 };
 
 const useHalma = (
